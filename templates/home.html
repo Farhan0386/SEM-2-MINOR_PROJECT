@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            max-width: 400px;
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>Add Book</h1>
+
+    <form method="POST" action="/add">
+        <label>Title:</label><br>
+        <input type="text" name="title"><br><br>
+
+        <label>Author:</label><br>
+        <input type="text" name="author"><br><br>
+
+        <label>Department:</label><br>
+        <input type="text" name="department"><br><br>
+
+        <label>Copies:</label><br>
+        <input type="number" name="copies"><br><br>
+
+        <button type="submit">Add Book</button>
+    </form>
+</body>
+</html>
