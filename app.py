@@ -54,11 +54,30 @@ def chat_api():
         return {"error": "No message provided"}, 400
 
     try:
-        # This calls the llama3 model running locally on your laptop
-        response = ollama.chat(model='llama3', messages=[
+        # 1. Fetch the real inventory from your database
+        all_books = database.get_all_books()
+        
+        # 2. Convert the database rows into a text list the AI can read
+        if all_books:
+            inventory_text = "\n".join([f"- '{book[1]}' by {book[2]} (Copies: {book[4]})" for book in all_books])
+        else:
+            inventory_text = "The library is currently completely empty. No books exist in the database."
+
+        # 3. Create a strict, grounded prompt
+        grounded_prompt = f"""You are the strict KRMU Library Assistant AI. 
+You must ONLY answer questions based on the exact inventory list below. 
+Do not invent, guess, or assume we have any other books. If the user asks for a book or category not in this list, explicitly tell them it is not available.
+
+CURRENT ACTUAL INVENTORY:
+{inventory_text}
+
+User Question: {user_message}"""
+
+        # 4. Send the grounded prompt to your local model
+        response = ollama.chat(model='phi3', messages=[
             {
                 'role': 'user',
-                'content': f"You are a helpful library assistant for KRMU. Answer this concise question: {user_message}"
+                'content': grounded_prompt
             },
         ])
         
