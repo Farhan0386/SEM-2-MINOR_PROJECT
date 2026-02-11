@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        height: 70vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-box {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 20px 20px 0 0;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .message {
+        max-width: 80%;
+        padding: 12px 18px;
+        border-radius: 15px;
+        line-height: 1.5;
+        font-size: 0.95rem;
+    }
+
+    .user-msg {
+        align-self: flex-end;
+        background: rgba(79, 172, 254, 0.4); /* Blue-ish tint */
+        color: white;
+        border-bottom-right-radius: 2px;
+    }
+
+    .ai-msg {
+        align-self: flex-start;
+        background: rgba(255, 255, 255, 0.15);
+        color: #e0e0e0;
+        border-bottom-left-radius: 2px;
+    }
+
+    .input-area {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 0 0 20px 20px;
+        display: flex;
+        gap: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: none;
+    }
+
+    input {
+        flex: 1;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        outline: none;
+    }
+
+    button {
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        background: #4facfe;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    button:hover { background: #00f2fe; }
+    
+    /* Loading dots animation */
+    .loading { color: #aaa; font-style: italic; font-size: 0.8rem; margin-left: 10px; }
+</style>
+
+<div class="chat-container">
+    <div class="chat-box" id="chat-box">
+        <div class="message ai-msg">Hello! I'm the KRMU Library AI. How can I help you today?</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Ask about books, Python, or engineering..." onkeypress="handleEnter(event)">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    async function sendMessage() {
+        const inputField = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+        const message = inputField.value.trim();
+
+        if (!message) return;
+
+        // 1. Add User Message to UI
+        chatBox.innerHTML += `<div class="message user-msg">${message}</div>`;
+        inputField.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 2. Add Loading Indicator
+        const loadingId = 'loading-' + Date.now();
+        chatBox.innerHTML += `<div class="loading" id="${loadingId}">AI is thinking...</div>`;
+
+        try {
+            // 3. Send to Python Backend
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+
+            const data = await response.json();
+            
+            // 4. Remove Loading & Add AI Response
+            document.getElementById(loadingId).remove();
+            
+            if (data.error) {
+                chatBox.innerHTML += `<div class="message ai-msg" style="color: #ff6b6b;">Error: ${data.error}</div>`;
+            } else {
+                chatBox.innerHTML += `<div class="message ai-msg">${data.response}</div>`;
+            }
+            
+        } catch (error) {
+            document.getElementById(loadingId).remove();
+            chatBox.innerHTML += `<div class="message ai-msg" style="color: #ff6b6b;">Connection Error. Is Ollama running?</div>`;
+        }
+        
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+</script>
+{% endblock %}

@@ -1,62 +1,86 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Library Management System</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        form {
-            max-width: 400px;
-            margin-top: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        
-    </style>
-</head>
-<body>
-    <h1>Add Book</h1>
+{% extends "base.html" %}
 
-    <form method="POST" action="/add">
-        <label>Title:</label><br>
-        <input type="text" name="title"><br><br>
+{% block content %}
+<style>
+    .hero {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    .hero h1 {
+        font-size: 3rem;
+        margin-bottom: 10px;
+        background: linear-gradient(to right, #fff, #b3cde0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+        font-size: 1.2rem;
+        color: rgba(255,255,255,0.8);
+    }
 
-        <label>Author:</label><br>
-        <input type="text" name="author"><br><br>
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+    }
 
-        <label>Department:</label><br>
-        <input type="text" name="department"><br><br>
+    .card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        transition: transform 0.3s ease, background 0.3s ease;
+        cursor: pointer;
+    }
 
-        <label>Copies:</label><br>
-        <input type="number" name="copies"><br><br>
+    .card:hover {
+        transform: translateY(-10px);
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
 
-        <button type="submit">Add Book</button>
-    </form>
-</body>
-</html>
+    .card h3 {
+        margin-bottom: 15px;
+        font-size: 1.5rem;
+    }
+
+    .card p {
+        margin-bottom: 25px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+    }
+</style>
+
+<div class="hero">
+    <h1>Welcome to KRMU Library</h1>
+    <p>AI-Integrated Management System by Team Kernel Six</p>
+</div>
+
+<div class="grid-container">
+    <div class="card" onclick="location.href='/view'">
+        <h3>📚 Library Inventory</h3>
+        <p>Browse the complete collection of books available in the department.</p>
+        <a href="/view" class="btn">View Books</a>
+    </div>
+
+    <div class="card" onclick="location.href='/search'">
+        <h3>🔍 Quick Search</h3>
+        <p>Find books by title, author, or unique ID instantly.</p>
+        <a href="/search" class="btn">Search Now</a>
+    </div>
+
+    <div class="card" onclick="location.href='/chat'">
+        <h3>🤖 AI Assistant</h3>
+        <p>Ask our AI about book recommendations or summaries.</p>
+        <a href="/chat" class="btn">Chat with AI</a>
+    </div>
+
+    <div class="card" onclick="location.href='/admin'">
+        <h3>⚙️ Admin Panel</h3>
+        <p>Add new books, update stock, or manage the system.</p>
+        <a href="/admin" class="btn">Manage</a>
+    </div>
+</div>
+{% endblock %}

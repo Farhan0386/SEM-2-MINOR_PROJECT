@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .search-container {
+        max-width: 600px;
+        margin: 0 auto 30px auto;
+        text-align: center;
+    }
+
+    .search-box {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 15px;
+        border: none;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+    .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .search-input:focus {
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+    }
+
+    .btn-search {
+        padding: 0 25px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    /* Table styles inherited from view_books conceptually */
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    th { background: rgba(255, 255, 255, 0.1); font-weight: 600; }
+    tr:hover td { background: rgba(255, 255, 255, 0.05); }
+    .empty-state { text-align: center; padding: 40px; color: rgba(255,255,255,0.7); }
+</style>
+
+<div class="search-container">
+    <h2>Search Library</h2>
+    <form action="/search" method="POST" class="search-box">
+        <input type="text" name="query" class="search-input" placeholder="Enter title, author, or department..." value="{{ query }}" required>
+        <button type="submit" class="btn btn-search">Search</button>
+    </form>
+</div>
+
+{% if results is not none %}
+<div class="glass-card">
+    <h3>Search Results for "{{ query }}"</h3>
+    
+    <div style="width: 100%; overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Department</th>
+                    <th>Copies</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in results %}
+                <tr>
+                    <td>{{ book[0] }}</td>
+                    <td><strong>{{ book[1] }}</strong></td>
+                    <td>{{ book[2] }}</td>
+                    <td>{{ book[3] }}</td>
+                    <td>{{ book[4] }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="empty-state">No books match your search.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

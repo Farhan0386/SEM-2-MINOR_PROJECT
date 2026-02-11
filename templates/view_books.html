@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    th {
+        background: rgba(255, 255, 255, 0.1);
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    tr:hover td {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: rgba(255,255,255,0.7);
+    }
+</style>
+
+<div class="glass-card">
+    <h2>Library Inventory</h2>
+    <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 10px;">Current stock across all departments.</p>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Department</th>
+                    <th>Copies</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                <tr>
+                    <td>{{ book[0] }}</td>
+                    <td><strong>{{ book[1] }}</strong></td>
+                    <td>{{ book[2] }}</td>
+                    <td>{{ book[3] }}</td>
+                    <td>{{ book[4] }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="empty-state">No books found in the database. Head to the Admin panel to add some.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
