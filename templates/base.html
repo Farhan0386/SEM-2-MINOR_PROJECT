@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}SecureAuth{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+            --primary: #0071e3;
+            --bg: #f5f5f7;
+            --text-dark: #1d1d1f;
+            --text-light: #6e6e73;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                         "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+                         "Helvetica Neue", sans-serif;
+            background-color: var(--bg);
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ---------- Header ---------- */
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 8%;
+            background: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            margin-left: 25px;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        /* ---------- Main Content ---------- */
+
+        main {
+            flex: 1;
+            padding: 40px 8%;
+        }
+
+        /* ---------- Buttons ---------- */
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #005bb5;
+        }
+
+        .btn-outline {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ---------- Footer ---------- */
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: var(--white);
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* ---------- Responsive ---------- */
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            nav a {
+                margin: 0 10px;
+            }
+
+            main {
+                padding: 30px 20px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">SecureAuth</div>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+    </nav>
+</header>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    © 2026 SecureAuth. All rights reserved.
+</footer>
+
+</body>
+</html>
