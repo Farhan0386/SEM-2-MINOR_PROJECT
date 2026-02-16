@@ -10,7 +10,7 @@
             --apple-card: rgba(255, 255, 255, 0.7);
             --apple-accent: #fa243c; 
             --apple-text: #1d1d1f;
-            --header-height: 80px; /* Increased Height */
+            --header-height: 80px; 
         }
 
         * {
@@ -34,7 +34,7 @@
             top: 0;
             z-index: 1000;
             border-bottom: 0.5px solid rgba(0,0,0,0.1);
-            padding: 0 10%; /* Wider side padding */
+            padding: 0 10%; 
             height: var(--header-height);
             display: flex;
             align-items: center;
@@ -42,9 +42,9 @@
         }
 
         .nav-logo {
-            font-weight: 700; /* Bolder */
-            font-size: 32px; /* Increased Font Size */
-            letter-spacing: -0.04em; /* Tight Apple-style spacing */
+            font-weight: 700; 
+            font-size: 32px; 
+            letter-spacing: -0.04em; 
             text-decoration: none;
             color: var(--apple-text);
             display: flex;
@@ -61,8 +61,8 @@
             align-items: center;
         }
 
-        .nav-links a {
-            font-size: 14px; /* Slightly larger links */
+        .nav-links a, .nav-links span {
+            font-size: 14px; 
             font-weight: 500;
             color: rgba(0,0,0,0.8);
             text-decoration: none;
@@ -75,7 +75,6 @@
             color: var(--apple-accent);
         }
 
-        /* Container adjustment for taller header */
         main {
             padding-top: 40px;
             min-height: calc(100vh - var(--header-height));
@@ -84,7 +83,6 @@
             margin: 0 auto;
         }
 
-        /* Existing utility classes */
         .glass-card {
             background: var(--apple-card);
             backdrop-filter: blur(20px);
@@ -115,15 +113,31 @@
             <a href="/view">Browse</a>
             <a href="/search">Search</a>
             <a href="/chat">AI Assistant</a>
-            {% if session.get('user_id') %}
+
+            {% if session.get('admin_logged_in') %}
+                <a href="/admin/dashboard" style="font-weight: bold;">Dashboard</a>
+                <a href="/admin/logout" style="color: var(--apple-accent);">Admin Logout</a>
+            {% elif session.get('user_id') %}
+                <span style="color: #6e6e73;">Hello, {{ session.get('user_name') }}</span>
                 <a href="/logout">Sign Out</a>
             {% else %}
                 <a href="/login">Sign In</a>
+                <a href="/admin/login" style="border: 1px solid var(--apple-accent); padding: 5px 15px; border-radius: 8px;">Admin</a>
             {% endif %}
         </div>
     </nav>
 
     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="padding: 15px; margin-bottom: 20px; border-radius: 10px; text-align: center; background: rgba(0,0,0,0.05); color: var(--apple-accent);">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
         {% block content %}{% endblock %}
     </main>
 

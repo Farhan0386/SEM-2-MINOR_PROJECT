@@ -49,39 +49,105 @@ def user_logout():
     session.clear()
     return redirect(url_for('home'))
 
-# --- Admin Functionality ---
+# --- Admin Authentication ---
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        # Hardcoded credentials for administration
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        # Hardcoded credentials for now
         if username == "admin" and password == "password123":
-            session['logged_in'] = True
+            session['admin_logged_in'] = True
+            session['user_name'] = "Administrator"
+            flash("Welcome back, Admin!", "success")
             return redirect(url_for('admin_dashboard'))
-        return render_template('admin_login.html', error="Invalid Credentials")
+        else:
+            flash("Invalid Admin Credentials.", "danger")
+            
     return render_template('admin_login.html')
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
-    # Simple access control
-    if not session.get('logged_in'):
+    # Protection: check if admin is logged in
+    if not session.get('admin_logged_in'):
+        flash("Please log in to access the dashboard.", "warning")
         return redirect(url_for('admin_login'))
     return render_template('admin_dashboard.html')
 
-@app.route('/admin/delete/<int:book_id>')
-def delete_book_route(book_id):
-    if not session.get('logged_in'): 
-        return redirect(url_for('admin_login'))
-    database.delete_book(book_id)
-    return redirect(url_for('manage_books'))
-
 @app.route('/admin/logout')
 def admin_logout():
-    """Renamed from 'logout' to prevent conflict with the user logout function."""
-    session.pop('logged_in', None)
+    # Clear admin status but keep user session if needed, 
+    # or use session.clear() to log out of everything.
+    session.pop('admin_logged_in', None)
+    flash("Admin logged out successfully.", "info")
     return redirect(url_for('home'))
+# --- Admin Book Management ---
+
+@app.route('/admin/add_book', methods=['GET', 'POST'])
+def add_book():
+    """Route to handle adding a new book to the library."""
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    
+    if request.method == 'POST':
+        # Collect data from the form
+        title = request.form.get('title')
+        author = request.form.get('author')
+        department = request.form.get('department')
+        copies = request.form.get('copies')
+        
+        # Save to database
+        database.insert_book(title, author, department, copies)
+        flash(f"Book '{title}' added successfully!", "success")
+        return redirect(url_for('admin_dashboard'))
+        
+    return render_template('admin.html') # This is your 'Add Book' form
+
+@app.route('/admin/manage_inventory')
+def manage_inventory():
+    """Displays all books with options to edit or delete."""
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    
+    # Fetch all books from DB
+    all_books = database.get_all_books()
+    return render_template('manage_books.html', books=all_books)
+
+# --- Issue & Return Backend Logic ---
+
+@app.route('/admin/issue_book', methods=['POST'])
+def process_issue():
+    """Backend logic to issue a book to a student."""
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+        
+    book_id = request.form.get('book_id')
+    student_name = request.form.get('student_name')
+    
+    # Call the issue function which also reduces copy count
+    if database.issue_book(book_id, student_name):
+        flash("Book issued successfully!", "success")
+    else:
+        flash("Failed to issue book. Check if copies are available.", "danger")
+        
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/return_book', methods=['POST'])
+def process_return():
+    """Backend logic to return a book."""
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+        
+    book_id = request.form.get('book_id')
+    student_name = request.form.get('student_name')
+    
+    # Call the return function which increases copy count
+    database.return_book(book_id, student_name)
+    flash("Book returned successfully!", "info")
+    
+    return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':
      app.run(debug=True)

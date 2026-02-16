@@ -2,13 +2,15 @@ import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 
 def get_connection():
+    """Establishes a connection to the SQLite database."""
     return sqlite3.connect("library.db")
 
 def init_db():
-    """Initializes the database with books and users tables."""
+    """Initializes all required tables: books, users, and transactions."""
     conn = get_connection()
     cursor = conn.cursor()
-    # Books Table
+    
+    # 1. Books Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS books (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,7 +20,8 @@ def init_db():
             copies INTEGER NOT NULL
         )
     """)
-    # Users Table
+    
+    # 2. Users Table (for Student/User login)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,11 +30,90 @@ def init_db():
             password TEXT NOT NULL
         )
     """)
+    
+    # 3. Transactions Table (for Issue/Return tracking)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            book_id INTEGER,
+            student_name TEXT,
+            action TEXT, -- 'issue' or 'return'
+            date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (book_id) REFERENCES books (id)
+        )
+    """)
+    
     conn.commit()
     conn.close()
 
+# --- Book Management (Admin Features) ---
+
+def insert_book(title, author, department, copies):
+    """Adds a new book to the inventory."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO books (title, author, department, copies)
+        VALUES (?, ?, ?, ?)
+    """, (title, author, department, copies))
+    conn.commit()
+    conn.close()
+
+def get_all_books():
+    """Retrieves all books from the database."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM books")
+    books = cursor.fetchall()
+    conn.close()
+    return books
+
+def get_book_by_id(book_id):
+    """Fetches a single book's details for editing."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM books WHERE id = ?", (book_id,))
+    book = cursor.fetchone()
+    conn.close()
+    return book
+
+def update_book(book_id, title, author, department, copies):
+    """Updates existing book details."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE books 
+        SET title = ?, author = ?, department = ?, copies = ?
+        WHERE id = ?
+    """, (title, author, department, copies, book_id))
+    conn.commit()
+    conn.close()
+
+def delete_book(book_id):
+    """Removes a book from the inventory."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM books WHERE id = ?", (book_id,))
+    conn.commit()
+    conn.close()
+
+def search_books_by_query(query):
+    """Searches books by title, author, or department."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    search_term = f"%{query}%"
+    cursor.execute("""
+        SELECT * FROM books 
+        WHERE title LIKE ? OR author LIKE ? OR department LIKE ?
+    """, (search_term, search_term, search_term))
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+# --- User Authentication ---
+
 def create_user(name, email, password):
-    """Hashes password and saves user to DB."""
+    """Hashes the password and saves a new user."""
     conn = get_connection()
     cursor = conn.cursor()
     hashed_pw = generate_password_hash(password)
@@ -46,7 +128,7 @@ def create_user(name, email, password):
         conn.close()
 
 def verify_user(email, password):
-    """Checks if user exists and password matches."""
+    """Verifies user credentials using password hashing."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
@@ -54,42 +136,36 @@ def verify_user(email, password):
     conn.close()
     
     if user and check_password_hash(user[3], password):
-        return user # Returns (id, name, email, password)
+        return user 
     return None
 
-# Add to database.py
+# --- Issue and Return Logic ---
 
-def delete_book(book_id):
+def issue_book(book_id, student_name):
+    """Records a book issue and reduces inventory count by 1."""
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM books WHERE id = ?", (book_id,))
-    conn.commit()
+    # Check if copies are available
+    cursor.execute("SELECT copies FROM books WHERE id = ?", (book_id,))
+    res = cursor.fetchone()
+    if res and res[0] > 0:
+        # Record transaction
+        cursor.execute("INSERT INTO transactions (book_id, student_name, action) VALUES (?, ?, 'issue')", 
+                       (book_id, student_name))
+        # Update copy count
+        cursor.execute("UPDATE books SET copies = copies - 1 WHERE id = ?", (book_id,))
+        conn.commit()
+        conn.close()
+        return True
     conn.close()
+    return False
 
-def update_book(book_id, title, author, department, copies):
+def return_book(book_id, student_name):
+    """Records a book return and increases inventory count by 1."""
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-        UPDATE books 
-        SET title = ?, author = ?, department = ?, copies = ?
-        WHERE id = ?
-    """, (title, author, department, copies, book_id))
-    conn.commit()
-    conn.close()
-
-# New Table for Issue/Return
-def create_transaction_table():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            book_id INTEGER,
-            student_name TEXT,
-            action TEXT, -- 'issue' or 'return'
-            date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (book_id) REFERENCES books (id)
-        )
-    """)
+    cursor.execute("INSERT INTO transactions (book_id, student_name, action) VALUES (?, ?, 'return')", 
+                   (book_id, student_name))
+    cursor.execute("UPDATE books SET copies = copies + 1 WHERE id = ?", (book_id,))
     conn.commit()
     conn.close()
