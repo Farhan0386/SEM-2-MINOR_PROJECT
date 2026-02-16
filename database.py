@@ -169,3 +169,34 @@ def return_book(book_id, student_name):
     cursor.execute("UPDATE books SET copies = copies + 1 WHERE id = ?", (book_id,))
     conn.commit()
     conn.close()
+
+    # Add these columns to your books table in database.py
+def init_db():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS books (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            author TEXT NOT NULL,
+            department TEXT NOT NULL,
+            copies INTEGER NOT NULL,
+            isbn TEXT,
+            description TEXT,
+            image_filename TEXT
+        )
+    """)
+    # ... rest of your init_db code (users, transactions)
+    conn.commit()
+    conn.close()
+
+# Update your insert_book function to handle the new fields
+def insert_book(title, author, department, copies, isbn, description, image_filename):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO books (title, author, department, copies, isbn, description, image_filename)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (title, author, department, copies, isbn, description, image_filename))
+    conn.commit()
+    conn.close()

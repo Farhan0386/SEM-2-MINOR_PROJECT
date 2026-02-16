@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="glass-card admin-container" style="max-width: 600px; margin: 40px auto;">
+    <h2 style="text-align: center;">Add Detailed Book</h2>
+    
+    <form action="/admin/add_book" method="POST" enctype="multipart/form-data" class="admin-form">
+        <input type="text" name="title" class="admin-input" placeholder="Book Title" required>
+        <input type="text" name="author" class="admin-input" placeholder="Author" required>
+        <input type="text" name="isbn" class="admin-input" placeholder="ISBN Number">
+        <input type="number" name="copies" class="admin-input" placeholder="Number of Copies" required>
+        
+        <select name="department" class="admin-input" required>
+            <option value="" disabled selected>Select Department</option>
+            <option value="CSE">Computer Science</option>
+            <option value="AI_ML">AI & ML</option>
+            <option value="BBA">Business Administration</option>
+        </select>
+
+        <textarea name="description" class="admin-input" placeholder="Book Description" rows="4" style="resize: none;"></textarea>
+        
+        <div style="margin-top: 10px;">
+            <label style="font-size: 14px; color: #86868b;">Upload Book Cover:</label>
+            <input type="file" name="image" class="admin-input" accept="image/*">
+        </div>
+
+        <button type="submit" class="btn-admin">Save Book to Registry</button>
+    </form>
+</div>
+{% endblock %}

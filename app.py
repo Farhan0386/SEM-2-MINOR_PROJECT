@@ -1,11 +1,22 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.utils import secure_filename
 import database  
 
+# 1. APPLICATION SETUP
 app = Flask(__name__)
-# Set a single secret key once
 app.secret_key = 'aura_secret_key_123' 
 
-# Initialize DB on startup
+# 2. FILE UPLOAD CONFIGURATION
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Create the upload folder if it doesn't exist
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Initialize the database tables on startup
 database.init_db()
 
 # --- General Routes ---
@@ -14,7 +25,7 @@ database.init_db()
 def home():
     return render_template('home.html')
 
-# --- User Authentication ---
+# --- User Authentication (Students) ---
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -45,7 +56,6 @@ def login():
 
 @app.route('/logout')
 def user_logout():
-    """Cleared duplicate function name conflict by renaming to user_logout."""
     session.clear()
     return redirect(url_for('home'))
 
@@ -57,7 +67,6 @@ def admin_login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # Hardcoded credentials for now
         if username == "admin" and password == "password123":
             session['admin_logged_in'] = True
             session['user_name'] = "Administrator"
@@ -70,7 +79,6 @@ def admin_login():
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
-    # Protection: check if admin is logged in
     if not session.get('admin_logged_in'):
         flash("Please log in to access the dashboard.", "warning")
         return redirect(url_for('admin_login'))
@@ -78,76 +86,75 @@ def admin_dashboard():
 
 @app.route('/admin/logout')
 def admin_logout():
-    # Clear admin status but keep user session if needed, 
-    # or use session.clear() to log out of everything.
     session.pop('admin_logged_in', None)
     flash("Admin logged out successfully.", "info")
     return redirect(url_for('home'))
-# --- Admin Book Management ---
+
+# --- Unified Admin Book Management (With Image Upload) ---
 
 @app.route('/admin/add_book', methods=['GET', 'POST'])
 def add_book():
-    """Route to handle adding a new book to the library."""
+    """Handles adding a new book with ISBN, Description, and Cover Image."""
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     
     if request.method == 'POST':
-        # Collect data from the form
+        # Get textual data
         title = request.form.get('title')
         author = request.form.get('author')
         department = request.form.get('department')
         copies = request.form.get('copies')
+        isbn = request.form.get('isbn')
+        description = request.form.get('description')
         
-        # Save to database
-        database.insert_book(title, author, department, copies)
-        flash(f"Book '{title}' added successfully!", "success")
+        # Handle File Upload logic
+        file = request.files.get('image')
+        filename = "default_book.png" # Standard default image
+        
+        if file and file.filename != '':
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        
+        # Call database function with all 7 parameters
+        database.insert_book(title, author, department, copies, isbn, description, filename)
+        flash(f"Book '{title}' added with image successfully!", "success")
         return redirect(url_for('admin_dashboard'))
         
-    return render_template('admin.html') # This is your 'Add Book' form
+    return render_template('admin.html') 
 
 @app.route('/admin/manage_inventory')
 def manage_inventory():
-    """Displays all books with options to edit or delete."""
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     
-    # Fetch all books from DB
     all_books = database.get_all_books()
     return render_template('manage_books.html', books=all_books)
 
-# --- Issue & Return Backend Logic ---
+# --- Issue & Return Logic ---
 
-@app.route('/admin/issue_book', methods=['POST'])
-def process_issue():
-    """Backend logic to issue a book to a student."""
+@app.route('/admin/issue_return', methods=['GET', 'POST'])
+def issue_return():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
-        
-    book_id = request.form.get('book_id')
-    student_name = request.form.get('student_name')
-    
-    # Call the issue function which also reduces copy count
-    if database.issue_book(book_id, student_name):
-        flash("Book issued successfully!", "success")
-    else:
-        flash("Failed to issue book. Check if copies are available.", "danger")
-        
-    return redirect(url_for('admin_dashboard'))
 
-@app.route('/admin/return_book', methods=['POST'])
-def process_return():
-    """Backend logic to return a book."""
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin_login'))
-        
-    book_id = request.form.get('book_id')
-    student_name = request.form.get('student_name')
-    
-    # Call the return function which increases copy count
-    database.return_book(book_id, student_name)
-    flash("Book returned successfully!", "info")
-    
-    return redirect(url_for('admin_dashboard'))
+    if request.method == 'POST':
+        book_id = request.form.get('book_id')
+        student_name = request.form.get('student_name')
+        action = request.form.get('action') 
+
+        if action == 'issue':
+            if database.issue_book(book_id, student_name):
+                flash(f"Book issued to {student_name}.", "success")
+            else:
+                flash("Error: No copies available for issue.", "danger")
+        else:
+            database.return_book(book_id, student_name)
+            flash(f"Book returned by {student_name}.", "info")
+            
+        return redirect(url_for('admin_dashboard'))
+
+    books = database.get_all_books()
+    return render_template('issue_return.html', books=books)
 
 if __name__ == '__main__':
      app.run(debug=True)
