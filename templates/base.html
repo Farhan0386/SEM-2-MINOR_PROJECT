@@ -2,148 +2,133 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}SecureAuth{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>Kernel Codex</title>
     <style>
         :root {
-            --primary: #0071e3;
-            --bg: #f5f5f7;
-            --text-dark: #1d1d1f;
-            --text-light: #6e6e73;
-            --white: #ffffff;
+            --apple-bg: #f5f5f7;
+            --apple-card: rgba(255, 255, 255, 0.7);
+            --apple-accent: #fa243c; 
+            --apple-text: #1d1d1f;
+            --header-height: 80px; /* Increased Height */
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
-                         "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
-                         "Helvetica Neue", sans-serif;
-            background-color: var(--bg);
-            color: var(--text-dark);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            background-color: var(--apple-bg);
+            color: var(--apple-text);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ---------- Header ---------- */
-
-        header {
+        /* Enhanced Navigation */
+        nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: saturate(180%) blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 0.5px solid rgba(0,0,0,0.1);
+            padding: 0 10%; /* Wider side padding */
+            height: var(--header-height);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 20px 8%;
-            background: var(--white);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            justify-content: space-between;
         }
 
-        .logo {
-            font-weight: 600;
-            font-size: 20px;
-        }
-
-        nav a {
+        .nav-logo {
+            font-weight: 700; /* Bolder */
+            font-size: 32px; /* Increased Font Size */
+            letter-spacing: -0.04em; /* Tight Apple-style spacing */
             text-decoration: none;
-            margin-left: 25px;
-            color: var(--text-dark);
+            color: var(--apple-text);
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-logo span {
+            color: var(--apple-accent);
+            margin-left: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-size: 14px; /* Slightly larger links */
             font-weight: 500;
+            color: rgba(0,0,0,0.8);
+            text-decoration: none;
+            margin-left: 35px;
+            letter-spacing: -0.01em;
+            transition: color 0.2s ease;
         }
 
-        nav a:hover {
-            color: var(--primary);
+        .nav-links a:hover {
+            color: var(--apple-accent);
         }
 
-        /* ---------- Main Content ---------- */
-
+        /* Container adjustment for taller header */
         main {
-            flex: 1;
-            padding: 40px 8%;
+            padding-top: 40px;
+            min-height: calc(100vh - var(--header-height));
+            width: 90%;
+            max-width: 1100px;
+            margin: 0 auto;
         }
 
-        /* ---------- Buttons ---------- */
-
-        .btn {
-            padding: 10px 24px;
-            border-radius: 30px;
-            font-size: 15px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: 0.3s ease;
-            display: inline-block;
+        /* Existing utility classes */
+        .glass-card {
+            background: var(--apple-card);
+            backdrop-filter: blur(20px);
+            border-radius: 22px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.4);
         }
 
         .btn-primary {
-            background: var(--primary);
+            background-color: var(--apple-accent);
             color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-block;
         }
-
-        .btn-primary:hover {
-            background: #005bb5;
-        }
-
-        .btn-outline {
-            border: 1px solid var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-outline:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* ---------- Footer ---------- */
-
-        footer {
-            text-align: center;
-            padding: 25px;
-            background: var(--white);
-            color: var(--text-light);
-            font-size: 14px;
-        }
-
-        /* ---------- Responsive ---------- */
-
-        @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            nav a {
-                margin: 0 10px;
-            }
-
-            main {
-                padding: 30px 20px;
-            }
-        }
-
     </style>
 </head>
-
 <body>
-
-<header>
-    <div class="logo">SecureAuth</div>
     <nav>
-        <a href="/">Home</a>
-        <a href="/login">Login</a>
-        <a href="/register">Register</a>
+        <a href="/" class="nav-logo">Kernel<span>Codex</span></a>
+        
+        <div class="nav-links">
+            <a href="/view">Browse</a>
+            <a href="/search">Search</a>
+            <a href="/chat">AI Assistant</a>
+            {% if session.get('user_id') %}
+                <a href="/logout">Sign Out</a>
+            {% else %}
+                <a href="/login">Sign In</a>
+            {% endif %}
+        </div>
     </nav>
-</header>
 
-<main>
-    {% block content %}{% endblock %}
-</main>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 
-<footer>
-    © 2026 SecureAuth. All rights reserved.
-</footer>
-
+    <footer style="text-align: center; padding: 60px 0; font-size: 12px; color: #86868b;">
+        &copy; 2026 Kernel Six | K.R. Mangalam University
+    </footer>
 </body>
 </html>

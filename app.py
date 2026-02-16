@@ -1,125 +1,48 @@
-import sqlite3
-from flask import Flask, render_template, request, session, redirect, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+import database  
 
 app = Flask(__name__)
-app.secret_key = "super_secret_key"   # Required for sessions
+app.secret_key = 'aura_secret_key_123' # Required for sessions
 
-# --------------------
-# Database Initialization
-# --------------------
-
-def init_db():
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        )
-    """)
-
-    conn.commit()
-    conn.close()
-
-init_db()
-
-# --------------------
-# Routes
-# --------------------
+# Initialize DB on startup
+database.init_db()
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('home.html')
 
-
-# --------------------
-# Register Route (With Password Hashing)
-# --------------------
-
-@app.route("/register", methods=["GET", "POST"])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+    if request.method == 'POST':
+        name = f"{request.form.get('first_name')} {request.form.get('last_name')}"
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if database.create_user(name, email, password):
+            flash("Account created! Please login.")
+            return redirect(url_for('login'))
+        flash("Email already registered.")
+    return render_template('register.html')
 
-        hashed_password = generate_password_hash(password)
-
-        conn = sqlite3.connect("database.db")
-        cursor = conn.cursor()
-
-        try:
-            cursor.execute(
-                "INSERT INTO users (username, password) VALUES (?, ?)",
-                (username, hashed_password)
-            )
-            conn.commit()
-            conn.close()
-            return "User Registered Successfully"
-        except sqlite3.IntegrityError:
-            conn.close()
-            return "Username already exists"
-
-    return render_template("register.html")
-
-
-# --------------------
-# Login Route (Secure Password Check)
-# --------------------
-
-@app.route('/login', methods=["GET", "POST"])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user = database.verify_user(email, password)
+        
+        if user:
+            session['user_id'] = user[0]
+            session['user_name'] = user[1]
+            return redirect(url_for('home'))
+        flash("Invalid credentials.")
+    return render_template('login.html')
 
-        conn = sqlite3.connect("database.db")
-        cursor = conn.cursor()
-
-        cursor.execute(
-            "SELECT * FROM users WHERE username = ?",
-            (username,)
-        )
-        user = cursor.fetchone()
-        conn.close()
-
-        # user[2] = stored hashed password
-        if user and check_password_hash(user[2], password):
-            session["username"] = username
-            return redirect(url_for("dashboard"))
-        else:
-            return "Invalid Credentials"
-
-    return render_template("login.html")
-
-
-# --------------------
-# Protected Dashboard
-# --------------------
-
-@app.route("/dashboard")
-def dashboard():
-    if "username" in session:
-        return f"Welcome {session['username']}! You are logged in."
-    else:
-        return redirect(url_for("login"))
-
-
-# --------------------
-# Logout Route
-# --------------------
-
-@app.route("/logout")
+@app.route('/logout')
 def logout():
-    session.pop("username", None)
-    return redirect(url_for("home"))
+    session.clear()
+    return redirect(url_for('home'))
 
-
-# --------------------
-# Run App
-# --------------------
 
 if __name__ == '__main__':
-    app.run(debug=True)
+     app.run(debug=True)
