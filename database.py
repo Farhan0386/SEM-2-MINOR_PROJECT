@@ -57,4 +57,39 @@ def verify_user(email, password):
         return user # Returns (id, name, email, password)
     return None
 
-# Keep your existing insert_book, get_all_books, and search functions here...
+# Add to database.py
+
+def delete_book(book_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM books WHERE id = ?", (book_id,))
+    conn.commit()
+    conn.close()
+
+def update_book(book_id, title, author, department, copies):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE books 
+        SET title = ?, author = ?, department = ?, copies = ?
+        WHERE id = ?
+    """, (title, author, department, copies, book_id))
+    conn.commit()
+    conn.close()
+
+# New Table for Issue/Return
+def create_transaction_table():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            book_id INTEGER,
+            student_name TEXT,
+            action TEXT, -- 'issue' or 'return'
+            date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (book_id) REFERENCES books (id)
+        )
+    """)
+    conn.commit()
+    conn.close()

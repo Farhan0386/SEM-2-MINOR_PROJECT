@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="glass-card" style="max-width: 900px; margin: 0 auto;">
+    <h2 style="text-align: center;">Admin Dashboard</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
+        <a href="/admin/add_book" class="btn" style="text-decoration: none; text-align: center; padding: 20px;">Add New Book</a>
+        <a href="/admin/manage_books" class="btn" style="text-decoration: none; text-align: center; padding: 20px;">Manage Inventory</a>
+        <a href="/admin/issue_return" class="btn" style="text-decoration: none; text-align: center; padding: 20px;">Issue/Return Books</a>
+    </div>
+</div>
+{% endblock %}

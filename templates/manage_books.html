@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="glass-card">
+    <h2>Inventory Management</h2>
+    <table style="width: 100%; border-collapse: collapse; color: white;">
+        <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.3);">
+                <th>Title</th>
+                <th>Author</th>
+                <th>Copies</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <td>{{ book[1] }}</td>
+                <td>{{ book[2] }}</td>
+                <td>{{ book[4] }}</td>
+                <td>
+                    <a href="/admin/edit/{{ book[0] }}" style="color: #4da6ff;">Edit</a> | 
+                    <a href="/admin/delete/{{ book[0] }}" style="color: #ff4d4d;" onclick="return confirm('Delete this book?')">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
