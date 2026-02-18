@@ -1,29 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="glass-card admin-container" style="max-width: 600px; margin: 40px auto;">
-    <h2 style="text-align: center;">Add Detailed Book</h2>
+<div class="glass-card" style="max-width: 600px; margin: 0 auto; padding: 40px;">
+    <h2 style="text-align: center; margin-bottom: 20px;">Register New Resource</h2>
     
-    <form action="/admin/add_book" method="POST" enctype="multipart/form-data" class="admin-form">
-        <input type="text" name="title" class="admin-input" placeholder="Book Title" required>
-        <input type="text" name="author" class="admin-input" placeholder="Author" required>
-        <input type="text" name="isbn" class="admin-input" placeholder="ISBN Number">
-        <input type="number" name="copies" class="admin-input" placeholder="Number of Copies" required>
+    <form action="/admin/add_book" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+        <input type="text" name="title" placeholder="Book Title" class="admin-input" required>
+        <input type="text" name="author" placeholder="Author Name" class="admin-input" required>
         
         <select name="department" class="admin-input" required>
             <option value="" disabled selected>Select Department</option>
-            <option value="CSE">Computer Science</option>
-            <option value="AI_ML">AI & ML</option>
-            <option value="BBA">Business Administration</option>
+            <option value="CSE AI & ML">CSE AI & ML</option>
+            <option value="Mechanical Engineering">Mechanical Engineering</option>
+            <option value="Business & Law">Business & Law</option>
+            <option value="Health Sciences">Health Sciences</option>
         </select>
-
-        <textarea name="description" class="admin-input" placeholder="Book Description" rows="4" style="resize: none;"></textarea>
         
-        <div style="margin-top: 10px;">
-            <label style="font-size: 14px; color: #86868b;">Upload Book Cover:</label>
-            <input type="file" name="image" class="admin-input" accept="image/*">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <input type="text" name="isbn" placeholder="ISBN Number" class="admin-input">
+            <input type="number" name="copies" placeholder="Copies" class="admin-input" required>
         </div>
 
-        <button type="submit" class="btn-admin">Save Book to Registry</button>
+        <textarea name="description" placeholder="Short Summary" class="admin-input" rows="3"></textarea>
+        
+        <label style="font-size: 12px; color: #86868b;">Upload Cover Image</label>
+        <input type="file" name="image" accept="image/*" class="admin-input">
+        
+        <button type="submit" class="btn-primary">Add to Library</button>
     </form>
 </div>
 {% endblock %}
