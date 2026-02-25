@@ -1,58 +1,31 @@
 {% extends "base.html" %}
-
 {% block content %}
-<style>
-    .admin-container {
-        max-width: 500px;
-        margin: 0 auto;
-    }
+<div class="glass-card" style="max-width: 600px; margin: 0 auto; padding: 40px;">
+    <h2 style="text-align: center; margin-bottom: 20px;">Register New Resource</h2>
     
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        margin-top: 20px;
-    }
+    <form action="/admin/add_book" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+        <input type="text" name="title" placeholder="Book Title" class="admin-input" required>
+        <input type="text" name="author" placeholder="Author Name" class="admin-input" required>
+        
+        <select name="department" class="admin-input" required>
+            <option value="" disabled selected>Select Department</option>
+            <option value="CSE AI & ML">CSE AI & ML</option>
+            <option value="Mechanical Engineering">Mechanical Engineering</option>
+            <option value="Business & Law">Business & Law</option>
+            <option value="Health Sciences">Health Sciences</option>
+        </select>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <input type="text" name="isbn" placeholder="ISBN Number" class="admin-input">
+            <input type="number" name="copies" placeholder="Copies" class="admin-input" required>
+        </div>
 
-    input {
-        width: 100%;
-        padding: 12px 15px;
-        border: none;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.2);
-        color: #fff;
-        font-size: 16px;
-        outline: none;
-        transition: background 0.3s ease;
-    }
-
-    input::placeholder {
-        color: rgba(255, 255, 255, 0.7);
-    }
-
-    input:focus {
-        background: rgba(255, 255, 255, 0.3);
-        box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
-    }
-
-    .btn-submit {
-        width: 100%;
-        margin-top: 10px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-</style>
-
-<div class="glass-card admin-container">
-    <h2 style="text-align: center;">Add New Book</h2>
-    <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 0.9rem;">System Administration</p>
-    
-    <form action="/admin" method="POST" class="form-group">
-        <input type="text" name="title" placeholder="Book Title" required>
-        <input type="text" name="author" placeholder="Author Name" required>
-        <input type="text" name="department" placeholder="Department (e.g., CSE AI & ML)" required>
-        <input type="number" name="copies" placeholder="Number of Copies" required>
-        <button type="submit" class="btn btn-submit">Add to Inventory</button>
+        <textarea name="description" placeholder="Short Summary" class="admin-input" rows="3"></textarea>
+        
+        <label style="font-size: 12px; color: #86868b;">Upload Cover Image</label>
+        <input type="file" name="image" accept="image/*" class="admin-input">
+        
+        <button type="submit" class="btn-primary">Add to Library</button>
     </form>
 </div>
 {% endblock %}

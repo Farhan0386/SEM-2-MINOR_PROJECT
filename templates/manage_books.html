@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2>Library Inventory</h2>
+        <form action="/admin/inventory" method="GET">
+            <select name="department" onchange="this.form.submit()" class="admin-input" style="width: 250px;">
+                <option value="">All Departments</option>
+                <option value="CSE AI & ML" {% if current_dept == 'CSE AI & ML' %}selected{% endif %}>CSE AI & ML</option>
+                <option value="Mechanical Engineering" {% if current_dept == 'Mechanical Engineering' %}selected{% endif %}>Mechanical Engineering</option>
+                <option value="Business & Law" {% if current_dept == 'Business & Law' %}selected{% endif %}>Business & Law</option>
+                <option value="Health Sciences" {% if current_dept == 'Health Sciences' %}selected{% endif %}>Health Sciences</option>
+            </select>
+        </form>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px;">
+        {% for book in books %}
+        <div class="glass-card" style="padding: 15px; text-align: center; display: flex; flex-direction: column;">
+            <img src="{{ url_for('static', filename='uploads/' + (book[7] if book[7] else 'default_book.png')) }}" 
+                 style="width: 100%; height: 260px; object-fit: cover; border-radius: 12px; margin-bottom: 15px;">
+            <h4 style="margin-bottom: 5px;">{{ book[1] }}</h4>
+            <p style="font-size: 13px; color: #86868b; margin-bottom: 10px;">{{ book[2] }}</p>
+            <div style="margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.05);">
+                <span style="font-weight: 700; color: var(--apple-accent);">{{ book[4] }} Copies left</span>
+            </div>
+        </div>
+        {% else %}
+        <p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #86868b;">No books found in this department.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

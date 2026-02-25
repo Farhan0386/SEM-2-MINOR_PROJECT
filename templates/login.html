@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto;">
+    <div class="glass-card">
+        <h2 style="margin-bottom: 20px; font-weight: 600; text-align: center;">Sign In</h2>
+        <form action="/login" method="POST">
+            <div style="margin-bottom: 15px;">
+                <input type="email" name="email" placeholder="Email" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #d2d2d7; background: #fff;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <input type="password" name="password" placeholder="Password" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #d2d2d7; background: #fff;">
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">Continue</button>
+        </form>
+        <p style="margin-top: 20px; text-align: center; font-size: 14px; color: #86868b;">
+            Don't have an ID? <a href="/register" style="color: var(--apple-accent); text-decoration: none;">Create yours now.</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

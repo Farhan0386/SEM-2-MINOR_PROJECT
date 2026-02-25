@@ -1,89 +1,143 @@
-from flask import Flask, render_template, request, redirect, url_for
-import database  
-import ollama  
+import os
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.utils import secure_filename
+import database
 
 app = Flask(__name__)
+app.secret_key = 'aura_secret_key_123'
 
-# --- Routes ---
+# File Upload Configuration
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+database.init_db()
+
+# --- Admin Authentication ---
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        user = request.form.get('username')
+        pw = request.form.get('password')
+        if user == "admin" and pw == "password123":
+            session['admin_logged_in'] = True
+            flash("Welcome back, Admin!", "success")
+            return redirect(url_for('admin_dashboard'))
+        flash("Invalid Credentials.", "danger")
+    return render_template('admin_login.html')
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    return render_template('admin_dashboard.html')
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_logged_in', None)
+    flash("Admin logged out successfully.", "info")
+    return redirect(url_for('home'))
+
+# --- Admin Resource Management ---
+
+@app.route('/admin/add_book', methods=['GET', 'POST'])
+def add_book():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        author = request.form.get('author')
+        dept = request.form.get('department')
+        copies = request.form.get('copies')
+        isbn = request.form.get('isbn')
+        desc = request.form.get('description')
+        
+        file = request.files.get('image')
+        filename = "default_book.png"
+        if file and file.filename != '':
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        
+        database.insert_book(title, author, dept, copies, isbn, desc, filename)
+        flash(f"'{title}' added to {dept} inventory!", "success")
+        return redirect(url_for('admin_dashboard'))
+
+    return render_template('admin.html')
+
+@app.route('/admin/inventory')
+def manage_inventory():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    
+    dept_filter = request.args.get('department')
+    if dept_filter:
+        books = database.get_books_by_department(dept_filter)
+    else:
+        books = database.get_all_books()
+        
+    return render_template('manage_books.html', books=books, current_dept=dept_filter)
+
+@app.route('/admin/issue_return', methods=['GET', 'POST'])
+def issue_return():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    if request.method == 'POST':
+        book_id = request.form.get('book_id')
+        student_name = request.form.get('student_name')
+        action = request.form.get('action') 
+
+        if action == 'issue':
+            if database.issue_book(book_id, student_name):
+                flash(f"Book issued to {student_name}.", "success")
+            else:
+                flash("Error: No copies available!", "danger")
+        else:
+            database.return_book(book_id, student_name)
+            flash(f"Book returned by {student_name}.", "info")
+            
+        return redirect(url_for('admin_dashboard'))
+
+    books = database.get_all_books()
+    return render_template('issue_return.html', books=books)
+
+# --- General Routes (Home/Register/Login) ---
 
 @app.route('/')
 def home():
     return render_template('home.html')
 
-@app.route('/admin', methods=['GET', 'POST'])
-def admin():
+@app.route('/register', methods=['GET', 'POST'])
+def register():
     if request.method == 'POST':
-        title = request.form['title']
-        author = request.form['author']
-        department = request.form['department']
-        copies = request.form['copies']
-        database.insert_book(title, author, department, copies)
-        return redirect(url_for('view_books'))
-    
-    return render_template('admin.html')
+        name = f"{request.form.get('first_name')} {request.form.get('last_name')}"
+        email = request.form.get('email')
+        password = request.form.get('password')
+        if database.create_user(name, email, password):
+            flash("Account created! Please login.")
+            return redirect(url_for('login'))
+        flash("Email already registered.")
+    return render_template('register.html')
 
-@app.route('/view')
-def view_books():
-    all_books = database.get_all_books() 
-    return render_template('view_books.html', books=all_books)
-
-@app.route('/search', methods=['GET', 'POST'])
-def search_books():
-    search_results = None
-    query = ""
-    
+@app.route('/login', methods=['GET', 'POST'])
+def login():
     if request.method == 'POST':
-        query = request.form.get('query')
-        if query:
-            search_results = database.search_books_by_query(query)
-            
-    return render_template('search_books.html', results=search_results, query=query)
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user = database.verify_user(email, password)
+        if user:
+            session['user_id'] = user[0]
+            session['user_name'] = user[1]
+            return redirect(url_for('home'))
+        flash("Invalid credentials.")
+    return render_template('login.html')
 
-# --- AI Integration Routes ---
+@app.route('/logout')
+def user_logout():
+    session.clear()
+    return redirect(url_for('home'))
 
-@app.route('/chat')
-def ai_chat():
-    return render_template('ai_chat.html')
-
-@app.route('/api/chat', methods=['POST'])
-def chat_api():
-    data = request.json
-    user_message = data.get('message', '')
-    
-    if not user_message:
-        return {"error": "No message provided"}, 400
-
-    try:
-        # 1. Fetch the real inventory from your database
-        all_books = database.get_all_books()
-        
-        # 2. Convert the database rows into a text list the AI can read
-        if all_books:
-            inventory_text = "\n".join([f"- '{book[1]}' by {book[2]} (Copies: {book[4]})" for book in all_books])
-        else:
-            inventory_text = "The library is currently completely empty. No books exist in the database."
-
-        # 3. Create a strict, grounded prompt
-        grounded_prompt = f"""You are the strict KRMU Library Assistant AI. 
-You must ONLY answer questions based on the exact inventory list below. 
-Do not invent, guess, or assume we have any other books. If the user asks for a book or category not in this list, explicitly tell them it is not available.
-
-CURRENT ACTUAL INVENTORY:
-{inventory_text}
-
-User Question: {user_message}"""
-
-        # 4. Send the grounded prompt to your local model
-        response = ollama.chat(model='phi3', messages=[
-            {
-                'role': 'user',
-                'content': grounded_prompt
-            },
-        ])
-        
-        return {"response": response['message']['content']}
-    except Exception as e:
-        return {"error": str(e)}, 500
-    
 if __name__ == '__main__':
     app.run(debug=True)

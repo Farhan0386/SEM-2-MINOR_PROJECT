@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Container for the login form */
+    .admin-login-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 60vh;
+    }
+
+    .admin-card {
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .admin-card h2 {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        margin-bottom: 10px;
+        color: var(--apple-text);
+    }
+
+    .admin-card p {
+        color: #86868b;
+        margin-bottom: 30px;
+        font-size: 14px;
+    }
+
+    /* Form Styling */
+    .admin-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .admin-input {
+        width: 100%;
+        padding: 16px;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.5);
+        font-size: 16px;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+    .admin-input:focus {
+        border-color: var(--apple-accent);
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(250, 36, 60, 0.1);
+    }
+
+    .btn-admin {
+        background-color: var(--apple-accent);
+        color: white;
+        border: none;
+        padding: 16px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+        margin-top: 10px;
+    }
+
+    .btn-admin:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    /* Flash Message Styling */
+    .alert {
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .alert-danger {
+        background: rgba(250, 36, 60, 0.1);
+        color: var(--apple-accent);
+        border: 1px solid rgba(250, 36, 60, 0.2);
+    }
+
+    .alert-success {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.2);
+    }
+</style>
+
+<div class="admin-login-wrapper">
+    <div class="glass-card admin-card">
+        <h2>Admin Access</h2>
+        <p>Enter your credentials to manage Kernel Codex.</p>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="/admin/login" method="POST" class="admin-form">
+            <input type="text" name="username" class="admin-input" placeholder="Admin Username" required>
+            <input type="password" name="password" class="admin-input" placeholder="Password" required>
+            <button type="submit" class="btn-admin">Sign In as Admin</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

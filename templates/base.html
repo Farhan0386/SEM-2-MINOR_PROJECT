@@ -3,143 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KRMU Smart Library</title>
+    <title>Kernel Codex</title>
     <style>
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --apple-bg: #f5f5f7;
+            --apple-card: rgba(255, 255, 255, 0.7);
+            --apple-accent: #fa243c; 
+            --apple-text: #1d1d1f;
+            --header-height: 80px; 
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
         }
 
         body {
-            /* Animated Mesh Gradient */
-            background: radial-gradient(circle at 10% 20%, #667eea, #764ba2, #6B8DD6, #8E37D7);
-            background-size: 300% 300%;
-            animation: gradientBG 18s ease infinite;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: white;
+            background-color: var(--apple-bg);
+            color: var(--apple-text);
+            -webkit-font-smoothing: antialiased;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Glassmorphism Navbar */
+        /* Enhanced Navigation */
         nav {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--glass-border);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: saturate(180%) blur(20px);
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
+            border-bottom: 0.5px solid rgba(0,0,0,0.1);
+            padding: 0 10%; 
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .nav-logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: #fff;
+            font-weight: 700; 
+            font-size: 32px; 
+            letter-spacing: -0.04em; 
             text-decoration: none;
+            color: var(--apple-text);
+            display: flex;
+            align-items: center;
         }
 
-        .nav-links a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            margin-left: 20px;
+        .nav-logo span {
+            color: var(--apple-accent);
+            margin-left: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a, .nav-links span {
+            font-size: 14px; 
             font-weight: 500;
-            transition: color 0.3s;
+            color: rgba(0,0,0,0.8);
+            text-decoration: none;
+            margin-left: 35px;
+            letter-spacing: -0.01em;
+            transition: color 0.2s ease;
         }
 
         .nav-links a:hover {
-            color: #fff;
-            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            color: var(--apple-accent);
         }
 
-        /* Main Content Area */
         main {
-            flex: 1;
-            padding: 40px 20px;
-            max-width: 1200px;
+            padding-top: 40px;
+            min-height: calc(100vh - var(--header-height));
+            width: 90%;
+            max-width: 1100px;
             margin: 0 auto;
-            width: 100%;
         }
 
-        /* Glassmorphism Footer */
-        footer {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid var(--glass-border);
-            text-align: center;
-            padding: 20px;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.6);
-        }
-        
-        /* Common Utility Classes */
         .glass-card {
-            background: var(--glass-bg);
+            background: var(--apple-card);
             backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: var(--glass-shadow);
+            border-radius: 22px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.4);
         }
 
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.2);
+        .btn-primary {
+            background-color: var(--apple-accent);
             color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
             text-decoration: none;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
-        }
-
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transform: translateY(-2px);
+            cursor: pointer;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
-
     <nav>
-        <a href="/" class="nav-logo">KRMU Library AI</a>
+        <a href="/" class="nav-logo">Kernel<span>Codex</span></a>
+        
         <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/view">Books</a>
+            <a href="/view">Browse</a>
             <a href="/search">Search</a>
             <a href="/chat">AI Assistant</a>
-            <a href="/admin">Admin</a>
+
+            {% if session.get('admin_logged_in') %}
+                <a href="/admin/dashboard" style="font-weight: bold;">Dashboard</a>
+                <a href="/admin/logout" style="color: var(--apple-accent);">Admin Logout</a>
+            {% elif session.get('user_id') %}
+                <span style="color: #6e6e73;">Hello, {{ session.get('user_name') }}</span>
+                <a href="/logout">Sign Out</a>
+            {% else %}
+                <a href="/login">Sign In</a>
+                <a href="/admin/login" style="border: 1px solid var(--apple-accent); padding: 5px 15px; border-radius: 8px;">Admin</a>
+            {% endif %}
         </div>
     </nav>
 
     <main>
-        {% block content %}
-        {% endblock %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="padding: 15px; margin-bottom: 20px; border-radius: 10px; text-align: center; background: rgba(0,0,0,0.05); color: var(--apple-accent);">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        &copy; 2026 Kernel Six Team. Built for K.R. Mangalam University Minor Project.
+    <footer style="text-align: center; padding: 60px 0; font-size: 12px; color: #86868b;">
+        &copy; 2026 Kernel Six | K.R. Mangalam University
     </footer>
-
 </body>
 </html>

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .dashboard-header h2 {
+        font-size: 48px;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        color: var(--apple-text);
+        margin-bottom: 10px;
+    }
+
+    .dashboard-header p {
+        color: #86868b;
+        font-size: 18px;
+    }
+
+    /* Grid Layout for Admin Tools */
+    .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-top: 20px;
+    }
+
+    .admin-tool-card {
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 30px;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+    }
+
+    .admin-tool-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    }
+
+    .tool-icon {
+        font-size: 32px;
+        background: rgba(250, 36, 60, 0.1);
+        color: var(--apple-accent);
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+
+    .admin-tool-card h3 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .admin-tool-card p {
+        font-size: 15px;
+        color: #6e6e73;
+        line-height: 1.5;
+    }
+
+    .tool-link {
+        margin-top: auto;
+        padding-top: 20px;
+        color: var(--apple-accent);
+        font-weight: 600;
+        font-size: 14px;
+    }
+</style>
+
+<div class="dashboard-header">
+    <h2>Control Center</h2>
+    <p>Manage inventory, track distributions, and expand the collection.</p>
+</div>
+
+<div class="admin-grid">
+    <a href="/admin" class="glass-card admin-tool-card">
+        <div class="tool-icon">➕</div>
+        <h3>Add New Book</h3>
+        <p>Introduce new academic titles and resources into the database.</p>
+        <span class="tool-link">Launch Form →</span>
+    </a>
+
+    <a href="/admin/manage_books" class="glass-card admin-tool-card">
+        <div class="tool-icon">📋</div>
+        <h3>Inventory</h3>
+        <p>Edit details, update copy counts, or remove outdated records.</p>
+        <span class="tool-link">View Registry →</span>
+    </a>
+
+    <a href="/admin/issue_return" class="glass-card admin-tool-card">
+        <div class="tool-icon">🔄</div>
+        <h3>Issue & Return</h3>
+        <p>Track student checkouts and log returns with real-time updates.</p>
+        <span class="tool-link">Manage Loans →</span>
+    </a>
+</div>
+
+<div class="glass-card" style="margin-top: 40px; padding: 30px; border-left: 4px solid var(--apple-accent);">
+    <h4 style="margin-bottom: 10px;">Quick Tip</h4>
+    <p style="font-size: 14px; color: #6e6e73;">Always ensure the student name matches their University ID exactly when issuing books to maintain data integrity in the audit logs.</p>
+</div>
+{% endblock %}

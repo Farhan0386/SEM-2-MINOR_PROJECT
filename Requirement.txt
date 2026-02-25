@@ -1,0 +1,2 @@
+1. First i create virtual-envirement 
+2. We use flask frame-work for this application
