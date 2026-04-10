@@ -1,217 +1,1239 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dynamic Interactive Roadmap with Notes</title>
-<style>
-  :root {
-    --font-sans: system-ui, -apple-system, sans-serif;
-    --color-background-secondary: #f4f4f5;
-    --color-border-tertiary: #e4e4e7;
-    --color-text-primary: #18181b;
-    --color-text-secondary: #52525b;
-    --color-text-tertiary: #a1a1aa;
-    --border-radius-md: 8px;
-    --border-radius-lg: 12px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font-sans); padding: 20px; background: #ffffff; }
-  
-  .roadmap { padding: 1rem 0; max-width: 800px; margin: 0 auto; }
-  .header-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-  .stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 16px; flex: 1; min-width: 120px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-  .stat-num { font-size: 22px; font-weight: bold; color: var(--color-text-primary); }
-  .stat-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
-  
-  /* Master Progress Bar */
-  .progress-container { margin-bottom: 30px; background: var(--color-background-secondary); padding: 15px; border-radius: var(--border-radius-lg); }
-  .overall-progress-bar { height: 10px; border-radius: 5px; background: var(--color-border-tertiary); width: 100%; overflow: hidden; margin-top: 8px; }
-  .overall-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #3B8BD4, #1D9E75, #BA7517, #993556, #534AB7); transition: width 0.4s ease-out; }
-  .progress-header { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: bold; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LibraAI — Advanced AI Library Management | Session 2025-26</title>
+    <meta name="description" content="B.Tech CSE (AI & ML) Minor Project Session 2025-26 — Data Analysis & Machine Learning on Library Transactions" />
+    <meta name="author" content="Farhan0386 & Team" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-  .phase { margin-bottom: 18px; border-radius: var(--border-radius-lg); border: 2px solid var(--color-border-tertiary); overflow: hidden; transition: border-color 0.3s; background: #fff; }
-  .phase:hover { border-color: #ccc; }
-  
-  .phase-header { display: flex; align-items: center; gap: 12px; padding: 16px; cursor: pointer; user-select: none; transition: background 0.2s; }
-  .phase-header:hover { background: var(--color-background-secondary); }
-  .phase-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
-  .phase-title { font-size: 16px; font-weight: bold; color: var(--color-text-primary); flex: 1; }
-  .phase-days { font-size: 12px; color: var(--color-text-secondary); font-weight: bold; }
-  .phase-badge { font-size: 11px; padding: 4px 12px; border-radius: 20px; font-weight: bold; text-transform: uppercase; }
-  
-  .chevron { font-size: 14px; color: var(--color-text-tertiary); transition: transform 0.3s ease; }
-  .chevron.open { transform: rotate(90deg); color: var(--color-text-primary); }
-  
-  /* Smooth Accordion */
-  .phase-body { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease-in-out; background: #fafafa; }
-  .phase-body.open { max-height: 5000px; opacity: 1; padding: 10px 16px 20px; }
-  
-  .day-row { display: flex; gap: 12px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--color-border-tertiary); transition: background 0.2s; }
-  .day-row:hover { background: #fff; border-radius: 6px; }
-  .day-row:last-of-type { border-bottom: none; }
-  
-  .checkbox-wrapper { padding-top: 2px; }
-  input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; border-radius: 4px; }
-  
-  .day-label { font-size: 12px; font-weight: bold; color: var(--color-text-secondary); min-width: 52px; padding-top: 2px; }
-  .day-tasks { flex: 1; }
-  .task { font-size: 14px; font-weight: bold; color: var(--color-text-primary); line-height: 1.4; }
-  .task-sub { font-size: 13px; color: var(--color-text-secondary); line-height: 1.5; margin-top: 4px; }
-  .deliverable { display: inline-block; font-size: 11px; margin-top: 8px; padding: 4px 10px; border-radius: 20px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-  
-  /* Notes Section */
-  .notes-area { width: 100%; min-height: 60px; margin-top: 12px; padding: 10px; border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); font-family: inherit; font-size: 13px; color: var(--color-text-primary); resize: vertical; background-color: #ffffff; transition: border-color 0.2s; }
-  .notes-area:focus { outline: none; border-color: #3B8BD4; box-shadow: 0 0 0 2px rgba(59, 139, 212, 0.2); }
-  .notes-area::placeholder { color: var(--color-text-tertiary); }
+    <style>
+        /* ==========================================================================
+           1. CSS CUSTOM PROPERTIES & DESIGN TOKENS
+           ========================================================================== */
+        :root {
+            /* Core Colors */
+            --bg-void:        #02040a;
+            --bg-deep:        #060913;
+            --bg-surface:     #0d1326;
+            --bg-card:        rgba(13, 19, 38, 0.6);
+            --bg-glass:       rgba(255, 255, 255, 0.02);
+            --bg-glass-hover: rgba(255, 255, 255, 0.05);
+            
+            /* Accents */
+            --accent-primary:   #00f0ff;
+            --accent-secondary: #7000ff;
+            --accent-tertiary:  #ff0055;
+            --accent-success:   #00ff88;
+            --accent-warning:   #ffb800;
 
-  .milestone-banner { background: var(--color-background-secondary); border-left: 4px solid; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; padding: 12px 16px; margin-top: 16px; font-size: 14px; font-weight: bold; color: var(--color-text-primary); }
-  
-  .completed-text .task, .completed-text .task-sub { text-decoration: line-through; opacity: 0.5; transition: all 0.3s; }
-</style>
+            /* Gradients */
+            --grad-primary: linear-gradient(135deg, var(--accent-primary) 0%, #0088ff 100%);
+            --grad-text:    linear-gradient(to right, #ffffff 0%, #a1a1aa 100%);
+            --grad-glow:    linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+
+            /* Borders */
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow:   rgba(0, 240, 255, 0.3);
+
+            /* Typography */
+            --text-main:     #f8fafc;
+            --text-muted:    #94a3b8;
+            --text-dark:     #02040a;
+            --font-display:  'Outfit', sans-serif;
+            --font-body:     'Plus Jakarta Sans', sans-serif;
+            --font-mono:     'JetBrains Mono', monospace;
+
+            /* Spacing & Layout */
+            --radius-sm:  8px;
+            --radius-md:  16px;
+            --radius-lg:  24px;
+            --radius-xl:  32px;
+            --container-w: 1280px;
+
+            /* Shadows */
+            --shadow-glow: 0 0 30px rgba(0, 240, 255, 0.15);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-neon: 0 0 10px rgba(0,240,255,0.5), 0 0 20px rgba(0,240,255,0.3);
+        }
+
+        /* ==========================================================================
+           2. RESET & BASE STYLES
+           ========================================================================== */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+            overflow-x: hidden;
+            background: var(--bg-void);
+        }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        ::selection {
+            background: rgba(0, 240, 255, 0.3);
+            color: #fff;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-void); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-surface); border-radius: 5px; border: 1px solid var(--border-subtle); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        img { max-width: 100%; display: block; border-radius: var(--radius-sm); }
+        button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+        /* ==========================================================================
+           3. BACKGROUND EFFECTS (CANVAS + CSS)
+           ========================================================================== */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(150px);
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.4;
+            animation: orbFloat 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .orb-1 { width: 600px; height: 600px; background: rgba(0, 240, 255, 0.15); top: -100px; left: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: rgba(112, 0, 255, 0.15); bottom: 10%; right: -50px; animation-delay: -5s; }
+
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 50px) scale(1.1); }
+            100% { transform: translate(-30px, 80px) scale(0.9); }
+        }
+
+        /* ==========================================================================
+           4. LOADER & PROGRESS
+           ========================================================================== */
+        #initial-loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-void);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .loader-content { text-align: center; }
+        
+        .loader-glitch {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            font-weight: 800;
+            color: #fff;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .loader-glitch::before, .loader-glitch::after {
+            content: "LibraAI";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-void);
+        }
+        .loader-glitch::before { left: 2px; text-shadow: -2px 0 var(--accent-tertiary); animation: glitch-anim 2s infinite linear alternate-reverse; }
+        .loader-glitch::after { left: -2px; text-shadow: -2px 0 var(--accent-primary); animation: glitch-anim 3s infinite linear alternate-reverse; }
+
+        @keyframes glitch-anim {
+            0% { clip-path: inset(10% 0 80% 0); }
+            20% { clip-path: inset(80% 0 5% 0); }
+            40% { clip-path: inset(40% 0 40% 0); }
+            60% { clip-path: inset(90% 0 5% 0); }
+            80% { clip-path: inset(15% 0 70% 0); }
+            100% { clip-path: inset(50% 0 30% 0); }
+        }
+
+        .progress-bar-container {
+            width: 300px; height: 2px; background: var(--bg-surface);
+            border-radius: 2px; overflow: hidden; position: relative;
+        }
+
+        .progress-bar {
+            height: 100%; width: 0%; background: var(--grad-primary);
+            transition: width 0.1s linear; box-shadow: var(--shadow-neon);
+        }
+
+        #scroll-progress {
+            position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+            background: var(--grad-primary); z-index: 10000;
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        /* ==========================================================================
+           5. NAVIGATION
+           ========================================================================== */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            padding: 20px 0; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 1px solid transparent;
+        }
+
+        nav.scrolled {
+            padding: 12px 0; background: rgba(2, 4, 10, 0.85);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .nav-container {
+            max-width: var(--container-w); margin: 0 auto; padding: 0 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-display); font-size: 1.5rem; font-weight: 800;
+            display: flex; align-items: center; gap: 10px; color: #fff;
+        }
+
+        .logo-icon {
+            width: 32px; height: 32px; background: var(--grad-primary);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px rgba(0,240,255,0.4);
+        }
+
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        
+        .nav-link {
+            font-size: 0.9rem; font-weight: 500; color: var(--text-muted);
+            transition: color 0.3s ease; position: relative;
+            padding: 5px 0;
+        }
+
+        .nav-link::after {
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 0%; height: 2px; background: var(--accent-primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover { color: #fff; }
+        .nav-link:hover::after { width: 100%; }
+
+        .btn-github {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 50px; font-size: 0.9rem; font-weight: 600;
+            background: var(--bg-glass); border: 1px solid var(--border-subtle);
+            color: #fff; transition: all 0.3s ease;
+        }
+
+        .btn-github:hover {
+            background: #fff; color: #000; border-color: #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.3); transform: translateY(-2px);
+        }
+
+        /* ==========================================================================
+           6. LAYOUT UTILITIES
+           ========================================================================== */
+        section { padding: 120px 0; position: relative; z-index: 10; }
+        .container { max-width: var(--container-w); margin: 0 auto; padding: 0 2rem; }
+        
+        .section-header { text-align: center; margin-bottom: 80px; }
+        .section-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 50px;
+            background: rgba(0,240,255,0.1); border: 1px solid rgba(0,240,255,0.2);
+            color: var(--accent-primary); font-family: var(--font-mono); font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 1.1; font-weight: 800; margin-bottom: 24px;
+        }
+        
+        .text-gradient {
+            background: var(--grad-primary);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .section-desc {
+            color: var(--text-muted); font-size: 1.1rem; max-width: 600px;
+            margin: 0 auto; line-height: 1.8;
+        }
+
+        /* Animations */
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+
+        /* ==========================================================================
+           7. HERO SECTION
+           ========================================================================== */
+        #hero {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding-top: 80px; text-align: center; position: relative;
+        }
+
+        .hero-content { position: relative; z-index: 2; max-width: 900px; }
+
+        .session-badge {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 8px 24px; border-radius: 100px; background: var(--bg-surface);
+            border: 1px solid var(--border-subtle); margin-bottom: 40px;
+            font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-muted);
+            box-shadow: var(--shadow-card);
+        }
+
+        .pulse-dot {
+            width: 8px; height: 8px; background: var(--accent-success); border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-success); animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,255,136,0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,255,136,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,136,0); } }
+
+        .hero-title {
+            font-family: var(--font-display); font-size: clamp(3.5rem, 8vw, 6.5rem);
+            font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 30px;
+            color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .hero-desc {
+            font-size: clamp(1.1rem, 2vw, 1.4rem); color: var(--text-muted);
+            max-width: 700px; margin: 0 auto 50px; line-height: 1.6;
+        }
+
+        .btn-group { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+
+        .btn-main {
+            padding: 16px 36px; border-radius: var(--radius-md); font-size: 1.1rem;
+            font-weight: 600; font-family: var(--font-display); text-decoration: none;
+            transition: all 0.3s ease; position: relative; overflow: hidden;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+
+        .btn-primary-action {
+            background: #fff; color: var(--text-dark);
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .btn-primary-action:hover {
+            transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,255,255,0.4);
+        }
+
+        .btn-outline {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); color: #fff;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); transform: translateY(-3px);
+        }
+
+        /* ==========================================================================
+           8. PROJECT JOURNEY TIMELINE (NEW & ADVANCED)
+           ========================================================================== */
+        #journey { background: var(--bg-deep); position: relative; }
+        
+        .timeline-container {
+            max-width: 900px; margin: 0 auto; position: relative; padding: 40px 0;
+        }
+
+        .timeline-line {
+            position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
+            background: linear-gradient(to bottom, transparent, var(--border-subtle) 10%, var(--border-subtle) 90%, transparent);
+            transform: translateX(-50%);
+        }
+
+        .timeline-progress {
+            position: absolute; left: 50%; top: 0; width: 4px; background: var(--grad-primary);
+            transform: translateX(-50%); height: 0%; box-shadow: var(--shadow-neon);
+            transition: height 0.5s ease-out;
+        }
+
+        .timeline-item {
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; margin-bottom: 80px; position: relative;
+        }
+
+        .timeline-item:nth-child(even) { flex-direction: row-reverse; }
+
+        .timeline-content {
+            width: 45%; background: var(--bg-card); padding: 40px;
+            border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-card); backdrop-filter: blur(20px);
+            transition: transform 0.4s ease, border-color 0.4s ease;
+        }
+
+        .timeline-content:hover { transform: translateY(-5px); border-color: var(--border-glow); }
+
+        .timeline-dot {
+            width: 24px; height: 24px; background: var(--bg-void);
+            border: 4px solid var(--border-subtle); border-radius: 50%;
+            position: absolute; left: 50%; transform: translateX(-50%);
+            z-index: 2; transition: all 0.4s ease;
+        }
+
+        .timeline-item.active .timeline-dot {
+            border-color: var(--accent-primary); background: #fff;
+            box-shadow: 0 0 20px var(--accent-primary);
+        }
+
+        .timeline-date {
+            font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-primary);
+            margin-bottom: 10px; display: block;
+        }
+
+        .timeline-content h3 {
+            font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; margin-bottom: 15px;
+        }
+
+        .timeline-content p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; }
+        .timeline-content ul { margin-top: 15px; padding-left: 20px; }
+        .timeline-content li { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px; list-style-type: disc; }
+
+        /* ==========================================================================
+           9. FEATURES / METHODOLOGY GRID
+           ========================================================================== */
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--bg-card); border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg); padding: 40px; position: relative;
+            overflow: hidden; transition: all 0.4s ease; backdrop-filter: blur(10px);
+        }
+
+        .feature-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 0%, rgba(0,240,255,0.1), transparent 70%);
+            opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
+        }
+
+        .feature-card:hover { transform: translateY(-10px); border-color: rgba(0,240,255,0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        .feature-card:hover::before { opacity: 1; }
+
+        .feat-icon {
+            width: 60px; height: 60px; border-radius: var(--radius-md);
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; margin-bottom: 24px; transition: transform 0.4s ease;
+        }
+        
+        .feature-card:hover .feat-icon { transform: scale(1.1) rotate(5deg); background: rgba(0,240,255,0.1); border-color: var(--accent-primary); }
+
+        .feature-card h3 { font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 15px; }
+        .feature-card p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; }
+
+        /* ==========================================================================
+           10. CHARTS GALLERY & LIGHTBOX
+           ========================================================================== */
+        #analysis { background: var(--bg-surface); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
+        
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+
+        .chart-card {
+            background: var(--bg-void); border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md); overflow: hidden; cursor: zoom-in;
+            transition: all 0.3s ease; display: flex; flex-direction: column;
+        }
+
+        .chart-card:hover { transform: translateY(-5px); border-color: var(--accent-primary); box-shadow: 0 10px 30px rgba(0,240,255,0.15); }
+
+        .chart-img-wrapper {
+            width: 100%; height: 220px; background: #000; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .chart-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; opacity: 0.85; }
+        .chart-card:hover .chart-img-wrapper img { transform: scale(1.08); opacity: 1; }
+
+        .zoom-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex;
+            align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+        }
+        
+        .chart-card:hover .zoom-overlay { opacity: 1; }
+        .zoom-btn { background: var(--bg-glass); border: 1px solid #fff; color: #fff; padding: 8px 16px; border-radius: 50px; font-size: 0.85rem; font-weight: 500; backdrop-filter: blur(5px); }
+
+        .chart-info { padding: 20px; border-top: 1px solid var(--border-subtle); }
+        .chart-info h4 { font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 5px; color: #fff; }
+        .chart-info p { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* Fullscreen Lightbox */
+        #lightbox {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000;
+            display: flex; align-items: center; justify-content: center; padding: 40px;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(10px);
+        }
+
+        #lightbox.active { opacity: 1; pointer-events: all; }
+        #lightbox img { max-width: 90vw; max-height: 85vh; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .lb-close { position: absolute; top: 30px; right: 40px; color: #fff; font-size: 2.5rem; cursor: pointer; transition: color 0.3s; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 50%; }
+        .lb-close:hover { color: var(--accent-primary); background: rgba(255,255,255,0.2); }
+
+        /* ==========================================================================
+           11. MACHINE LEARNING METRICS
+           ========================================================================== */
+        .ml-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+        }
+
+        .ml-content h3 { font-family: var(--font-display); font-size: 2rem; margin-bottom: 20px; }
+        .ml-content p { color: var(--text-muted); font-size: 1.05rem; margin-bottom: 20px; line-height: 1.8; }
+        
+        .code-block {
+            background: #0d1117; border: 1px solid #30363d; border-radius: var(--radius-md);
+            padding: 20px; font-family: var(--font-mono); font-size: 0.9rem; color: #e6edf3;
+            overflow-x: auto; margin-top: 30px; position: relative;
+        }
+        .code-block::before { content: 'Python / Sklearn'; position: absolute; top: 0; right: 0; background: #30363d; padding: 4px 12px; font-size: 0.75rem; border-bottom-left-radius: 8px; color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-comment { color: #8b949e; }
+
+        .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        
+        .metric-box {
+            background: var(--bg-card); border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg); padding: 30px; text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-value {
+            font-family: var(--font-display); font-size: 3rem; font-weight: 800;
+            background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 10px; display: inline-block;
+        }
+        .metric-label { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+
+        /* ==========================================================================
+           12. TECH STACK
+           ========================================================================== */
+        .tech-flex { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+        
+        .tech-pill {
+            padding: 12px 24px; background: var(--bg-card); border: 1px solid var(--border-subtle);
+            border-radius: 100px; display: flex; align-items: center; gap: 10px; font-weight: 600;
+            font-size: 0.95rem; transition: all 0.3s ease; cursor: default;
+        }
+        
+        .tech-pill:hover {
+            border-color: var(--accent-primary); transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,240,255,0.1); background: rgba(255,255,255,0.05);
+        }
+
+        .tech-pill svg { width: 20px; height: 20px; }
+
+        /* ==========================================================================
+           13. TEAM SECTION (WITH GITHUB IDs)
+           ========================================================================== */
+        #team { background: var(--bg-deep); }
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        
+        .team-card {
+            background: var(--bg-card); border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg); padding: 40px 30px; text-align: center;
+            transition: all 0.4s ease; position: relative; overflow: hidden;
+        }
+
+        .team-card:hover { transform: translateY(-10px); border-color: rgba(255,255,255,0.2); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+
+        .team-avatar {
+            width: 90px; height: 90px; border-radius: 50%; margin: 0 auto 20px;
+            background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: center; font-family: var(--font-display);
+            font-size: 2rem; font-weight: 800; color: #fff; position: relative; z-index: 2;
+        }
+
+        .leader-avatar { border-color: var(--accent-primary); box-shadow: 0 0 20px rgba(0,240,255,0.3); }
+
+        .team-name { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin-bottom: 5px; color: #fff; }
+        .team-role { color: var(--accent-primary); font-size: 0.85rem; font-family: var(--font-mono); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .github-link {
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px;
+            border-radius: 50px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);
+            color: var(--text-muted); font-size: 0.9rem; transition: all 0.3s;
+        }
+
+        .github-link:hover { background: #fff; color: #000; border-color: #fff; }
+        .github-link svg { width: 16px; height: 16px; fill: currentColor; }
+
+        /* ==========================================================================
+           14. FOOTER
+           ========================================================================== */
+        footer {
+            border-top: 1px solid var(--border-subtle); padding: 60px 0 30px;
+            background: var(--bg-void); text-align: center;
+        }
+        
+        .footer-logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 10px; }
+        .footer-text { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 30px; }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 30px; color: #64748b; font-size: 0.85rem; }
+
+        /* ==========================================================================
+           15. RESPONSIVE QUERIES
+           ========================================================================== */
+        @media (max-width: 1024px) {
+            .ml-container { grid-template-columns: 1fr; }
+            .timeline-line { left: 40px; }
+            .timeline-progress { left: 40px; }
+            .timeline-item { flex-direction: column !important; align-items: flex-start; padding-left: 80px; }
+            .timeline-content { width: 100%; }
+            .timeline-dot { left: 40px; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; } /* Simplified for mobile */
+            section { padding: 80px 0; }
+            .hero-title { font-size: 3rem; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .btn-group { flex-direction: column; width: 100%; }
+            .btn-group a { width: 100%; justify-content: center; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="roadmap">
-  <div class="header-row">
-    <div class="stat"><div class="stat-num">25</div><div class="stat-label">Total days</div></div>
-    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Phases</div></div>
-    <div class="stat"><div class="stat-num">0</div><div class="stat-label">Coding needed</div></div>
-    <div class="stat"><div class="stat-num">1</div><div class="stat-label">Final PPT</div></div>
-  </div>
+    <div class="noise-overlay"></div>
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <canvas id="bg-canvas"></canvas>
 
-  <div class="progress-container">
-    <div class="progress-header">
-      <span>Project Completion</span>
-      <span id="progress-text">0%</span>
-    </div>
-    <div class="overall-progress-bar">
-      <div class="overall-progress-fill" id="overall-progress"></div>
-    </div>
-  </div>
-
-  <div id="phases"></div>
-</div>
-
-<script>
-const phases = [
-  { id: 1, title: "Phase 1 — Setup & Dataset", days: "Day 1–4", color: "#3B8BD4", badgeText: "Foundation", badgeBg: "#E6F1FB", badgeColor: "#0C447C", borderColor: "#3B8BD4", milestone: "You have a clean dataset ready to analyse", milestoneColor: "#3B8BD4", days_list: [ { day: "Day 1", task: "Understand the project scope", sub: "Read your approved problem statement. Write down 4 questions your data will answer (e.g. most borrowed genre, peak month, fine by dept).", deliverable: "4 research questions written", delBg: "#E6F1FB", delColor: "#0C447C" }, { day: "Day 2", task: "Search for a real dataset on Kaggle.com", sub: 'Search: "library books dataset", "book borrowing dataset", "library transactions". Download best match.', deliverable: "Dataset downloaded", delBg: "#E6F1FB", delColor: "#0C447C" }, { day: "Day 3", task: "If no good dataset found → generate synthetic data", sub: "Use Python + pandas to create fake-but-realistic library records: 200 students, 30 books, 1000 transactions. I can give you this code.", deliverable: "CSV files ready", delBg: "#E6F1FB", delColor: "#0C447C" }, { day: "Day 4", task: "Explore the data manually in Excel / Google Sheets", sub: "Open the CSV. Look at columns. Note any missing values, wrong formats, or oddities. Write them down.", deliverable: "Data issues noted", delBg: "#E6F1FB", delColor: "#0C447C" } ] },
-  { id: 2, title: "Phase 2 — Data Cleaning", days: "Day 5–8", color: "#1D9E75", badgeText: "Cleaning", badgeBg: "#E1F5EE", badgeColor: "#085041", borderColor: "#1D9E75", milestone: "Clean, analysis-ready dataset", milestoneColor: "#1D9E75", days_list: [ { day: "Day 5", task: "Install Python environment", sub: "Install Anaconda or just install: pip install pandas matplotlib seaborn. Open Jupyter Notebook.", deliverable: "Jupyter Notebook working", delBg: "#E1F5EE", delColor: "#085041" }, { day: "Day 6", task: "Load data into pandas and check structure", sub: "Use df.head(), df.info(), df.describe() to understand your data. No analysis yet — just looking.", deliverable: "Basic stats printed", delBg: "#E1F5EE", delColor: "#085041" }, { day: "Day 7", task: "Handle missing values and fix data types", sub: "Fill nulls, convert dates to datetime format, fix any spelling inconsistencies in categories.", deliverable: "df.isnull().sum() shows 0", delBg: "#E1F5EE", delColor: "#085041" }, { day: "Day 8", task: "Create derived columns", sub: "Add columns like: days_late, fine_amount, issue_month, is_overdue. These will be used in analysis.", deliverable: "Final clean CSV exported", delBg: "#E1F5EE", delColor: "#085041" } ] },
-  { id: 3, title: "Phase 3 — Analysis & EDA", days: "Day 9–16", color: "#BA7517", badgeText: "Core Work", badgeBg: "#FAEEDA", badgeColor: "#633806", borderColor: "#BA7517", milestone: "All 8 charts generated & insights written", milestoneColor: "#BA7517", days_list: [ { day: "Day 9", task: "Analysis 1 — Most borrowed genres & books", sub: "value_counts() on genre/title. Bar chart. Find top 5 books and top 3 genres.", deliverable: "Chart 1 saved", delBg: "#FAEEDA", delColor: "#633806" }, { day: "Day 10", task: "Analysis 2 — Monthly borrowing trend", sub: "Group by month. Line chart showing peak and low months. Add insight: 'Feb & Aug are peak months'.", deliverable: "Chart 2 saved", delBg: "#FAEEDA", delColor: "#633806" }, { day: "Day 11", task: "Analysis 3 — Department-wise borrowing", sub: "Group by department. Horizontal bar chart. Find which dept uses library most.", deliverable: "Chart 3 saved", delBg: "#FAEEDA", delColor: "#633806" }, { day: "Day 12", task: "Analysis 4 — Fine analysis", sub: "Total fines per dept. Average late days. Who pays most? Histogram of fine distribution.", deliverable: "Chart 4 saved", delBg: "#FAEEDA", delColor: "#633806" }, { day: "Day 13", task: "Analysis 5 — Overdue pattern", sub: "What % of students return late? Is there a semester pattern? Which books are returned latest?", deliverable: "Chart 5 saved", delBg: "#FAEEDA", delColor: "#633806" }, { day: "Day 14", task: "Analysis 6 — Chatbot query analysis (NLP part)", sub: "Analyse query_logs.csv. Find most common intents. Word frequency. Bar chart of top 5 query types.", deliverable: "Chart 6 saved", delBg: "#FAEEDA", delColor: "#633806" }, { day: "Day 15", task: "Analysis 7 — Book availability vs demand", sub: "Compare how many copies exist vs how many times borrowed. Find high-demand low-stock books.", deliverable: "Chart 7 saved", delBg: "#FAEEDA", delColor: "#633806" }, { day: "Day 16", task: "Analysis 8 — Simple fine prediction (ML part)", sub: "Use sklearn linear regression. Predict fine from days_late. Plot actual vs predicted. Just 10 lines of code.", deliverable: "Chart 8 + model saved", delBg: "#FAEEDA", delColor: "#633806" } ] },
-  { id: 4, title: "Phase 4 — Report & Slides", days: "Day 17–22", color: "#993556", badgeText: "Documentation", badgeBg: "#FBEAF0", badgeColor: "#4B1528", borderColor: "#993556", milestone: "Filled PPTX + project report ready", milestoneColor: "#993556", days_list: [ { day: "Day 17", task: "Write findings document", sub: "For each of your 8 analyses, write 3 sentences: what you did, what you found, what it means. This becomes your report.", deliverable: "Findings.docx", delBg: "#FBEAF0", delColor: "#4B1528" }, { day: "Day 18", task: "Fill PPTX slides 3–8", sub: "Overview, Objectives, Key Features, Progress Summary, Methodology, Architecture. Use the guide I gave you earlier.", deliverable: "First 8 slides done", delBg: "#FBEAF0", delColor: "#4B1528" }, { day: "Day 19", task: "Fill PPTX slides 9–15", sub: "Flow diagram (simple boxes), Timeline, Next Steps, Data & Resources, Use Cases, Expected Results.", deliverable: "Full PPT filled", delBg: "#FBEAF0", delColor: "#4B1528" }, { day: "Day 20", task: "Insert charts into PPT", sub: "Paste your 8 charts into relevant slides. Each chart needs a 1-line caption with the key insight.", deliverable: "Charts in slides", delBg: "#FBEAF0", delColor: "#4B1528" }, { day: "Day 21", task: "Write project report (if required)", sub: "Introduction, Objectives, Methodology, Results (charts), Conclusion. 8–10 pages. Use your findings doc.", deliverable: "Report.docx", delBg: "#FBEAF0", delColor: "#4B1528" }, { day: "Day 22", task: "Proofread everything", sub: "Check slide text, chart labels, report grammar. Fix any wrong numbers or broken formatting.", deliverable: "Final reviewed docs", delBg: "#FBEAF0", delColor: "#4B1528" } ] },
-  { id: 5, title: "Phase 5 — Final Polish & Submit", days: "Day 23–25", color: "#534AB7", badgeText: "Done", badgeBg: "#EEEDFE", badgeColor: "#26215C", borderColor: "#534AB7", milestone: "Project submitted. You're done.", milestoneColor: "#534AB7", days_list: [ { day: "Day 23", task: "Practice your 5-minute presentation", sub: "Say out loud: what problem you solved, what data you used, what 3 key findings are, and what you'd do next.", deliverable: "Confident pitch", delBg: "#EEEDFE", delColor: "#26215C" }, { day: "Day 24", task: "Final review + organise submission folder", sub: "Folder: /dataset, /charts, /notebooks, /report, /presentation. Zip it clean.", deliverable: "Submission zip ready", delBg: "#EEEDFE", delColor: "#26215C" }, { day: "Day 25", task: "Submit & present", sub: "Submit on time. During presentation: show 2-3 charts, explain what they mean, say one future improvement.", deliverable: "Project submitted", delBg: "#EEEDFE", delColor: "#26215C" } ] }
-];
-
-const container = document.getElementById('phases');
-let totalTasks = 0;
-
-// Build the HTML
-phases.forEach((phase, i) => {
-  const div = document.createElement('div');
-  div.className = 'phase';
-  div.style.borderColor = 'var(--color-border-tertiary)';
-
-  const isFirst = i === 0;
-  totalTasks += phase.days_list.length;
-
-  div.innerHTML = `
-    <div class="phase-header" onclick="togglePhase(${i})">
-      <div class="phase-dot" style="background:${phase.color}"></div>
-      <div class="phase-title">${phase.title}</div>
-      <span class="phase-days">${phase.days}</span>
-      <span class="phase-badge" style="background:${phase.badgeBg};color:${phase.badgeColor}">${phase.badgeText}</span>
-      <span class="chevron ${isFirst ? 'open' : ''}" id="chev-${i}">▶</span>
-    </div>
-    <div class="phase-body ${isFirst ? 'open' : ''}" id="body-${i}">
-      ${phase.days_list.map((d, taskIndex) => `
-        <div class="day-row" id="row-${i}-${taskIndex}">
-          <div class="checkbox-wrapper">
-            <input type="checkbox" class="task-checkbox" data-target="content-${i}-${taskIndex}" style="accent-color:${phase.color}" onchange="saveData()">
-          </div>
-          <div class="day-label">${d.day}</div>
-          <div class="day-tasks" id="content-${i}-${taskIndex}">
-            <div class="task">${d.task}</div>
-            <div class="task-sub">${d.sub}</div>
-            <span class="deliverable" style="background:${d.delBg};color:${d.delColor}">✓ ${d.deliverable}</span>
-            <textarea class="notes-area" placeholder="Write your notes for ${d.day} here. They save automatically..." oninput="saveData()"></textarea>
-          </div>
+    <div id="initial-loader">
+        <div class="loader-content">
+            <div class="loader-glitch">LibraAI</div>
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; letter-spacing: 2px;">INITIALIZING WORKSPACE</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="loader-bar"></div>
+            </div>
         </div>
-      `).join('')}
-      <div class="milestone-banner" style="border-left-color:${phase.borderColor}">
-        Milestone: ${phase.milestone}
-      </div>
     </div>
-  `;
-  container.appendChild(div);
-});
 
-// Accordion toggle
-function togglePhase(i) {
-  const body = document.getElementById('body-' + i);
-  const chev = document.getElementById('chev-' + i);
-  const isOpen = body.classList.contains('open');
-  body.classList.toggle('open', !isOpen);
-  chev.classList.toggle('open', !isOpen);
-}
+    <div id="scroll-progress"></div>
 
-// Master function to save everything to Local Storage
-function saveData() {
-  // Save Checkboxes
-  const checkboxes = document.querySelectorAll('.task-checkbox');
-  const checkboxStates = Array.from(checkboxes).map(cb => cb.checked);
-  localStorage.setItem('roadmap_checks', JSON.stringify(checkboxStates));
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                </div>
+                LibraAI
+            </a>
+            <div class="nav-links">
+                <a href="#hero" class="nav-link">Home</a>
+                <a href="#journey" class="nav-link">Project Journey</a>
+                <a href="#analysis" class="nav-link">Visualizations</a>
+                <a href="#ml" class="nav-link">ML Model</a>
+                <a href="#team" class="nav-link">Team</a>
+            </div>
+            <a href="https://github.com/Farhan0386/sem-2-minor_project" target="_blank" class="btn-github">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                Repository
+            </a>
+        </div>
+    </nav>
 
-  // Save Notes
-  const textareas = document.querySelectorAll('.notes-area');
-  const noteTexts = Array.from(textareas).map(ta => ta.value);
-  localStorage.setItem('roadmap_notes', JSON.stringify(noteTexts));
+    <section id="hero">
+        <div class="container hero-content">
+            <div class="session-badge reveal">
+                <div class="pulse-dot"></div>
+                B.Tech CSE (AI & ML) Minor Project • Session 2025-26
+            </div>
+            <h1 class="hero-title reveal delay-100">
+                Transforming Data into <br> <span class="text-gradient">Library Intelligence</span>
+            </h1>
+            <p class="hero-desc reveal delay-200" id="typewriter-text">
+                Harnessing exploratory data analysis and Machine Learning on 1000+ synthetic transactions to uncover hidden borrowing patterns, forecast peak demands, and mathematically predict fine amounts.
+            </p>
+            <div class="btn-group reveal delay-300">
+                <a href="#analysis" class="btn-main btn-primary-action">
+                    Explore Analytics
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+                <a href="#journey" class="btn-main btn-outline">
+                    View Methodology
+                </a>
+            </div>
+        </div>
+    </section>
 
-  updateVisuals();
-}
+    <section id="journey">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge">Methodology</div>
+                <h2 class="section-title">The Project <span class="text-gradient">Journey</span></h2>
+                <p class="section-desc">A complete structural breakdown of how we progressed from problem identification to deploying a fully functional machine learning model.</p>
+            </div>
 
-// Function to update progress bar and strikethroughs
-function updateVisuals() {
-  const checkboxes = document.querySelectorAll('.task-checkbox');
-  let checkedCount = 0;
+            <div class="timeline-container" id="timeline">
+                <div class="timeline-line"></div>
+                <div class="timeline-progress" id="timeline-progress"></div>
 
-  checkboxes.forEach((cb) => {
-    const targetDiv = document.getElementById(cb.dataset.target);
-    if (cb.checked) {
-      targetDiv.classList.add('completed-text');
-      checkedCount++;
-    } else {
-      targetDiv.classList.remove('completed-text');
-    }
-  });
+                <div class="timeline-item reveal" data-step="1">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">PHASE 01 : INITIATION</span>
+                        <h3>Problem Identification</h3>
+                        <p>Traditional library systems act as passive record-keepers. We identified key inefficiencies:</p>
+                        <ul>
+                            <li>Inability to forecast stock shortages during peak demand.</li>
+                            <li>Lack of departmental usage metrics.</li>
+                            <li>Manual, error-prone overdue fine calculations.</li>
+                        </ul>
+                    </div>
+                </div>
 
-  const percentage = Math.round((checkedCount / totalTasks) * 100);
-  document.getElementById('overall-progress').style.width = percentage + '%';
-  document.getElementById('progress-text').innerText = percentage + '%';
-}
+                <div class="timeline-item reveal" data-step="2">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">PHASE 02 : DATA COLLECTION</span>
+                        <h3>Synthetic Dataset Engineering</h3>
+                        <p>To avoid PII privacy issues with real student data, Aman and Trigya engineered a robust synthetic dataset using Python.</p>
+                        <ul>
+                            <li>1,000+ distinct transaction records.</li>
+                            <li>Mapped against 200 virtual students and 30 books.</li>
+                            <li>Introduced edge cases (nulls) to test cleaning pipelines.</li>
+                        </ul>
+                    </div>
+                </div>
 
-// Load saved data when the page opens
-window.onload = function() {
-  // Load Checkboxes
-  const savedChecks = JSON.parse(localStorage.getItem('roadmap_checks') || '[]');
-  const checkboxes = document.querySelectorAll('.task-checkbox');
-  checkboxes.forEach((cb, index) => {
-    if (savedChecks[index] === true) {
-      cb.checked = true;
-    }
-  });
+                <div class="timeline-item reveal" data-step="3">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">PHASE 03 : PREPROCESSING</span>
+                        <h3>Data Cleaning & EDA</h3>
+                        <p>Executed in Jupyter Notebooks using Pandas and NumPy. We transformed raw data into model-ready numerical formats.</p>
+                        <ul>
+                            <li>Imputed missing `ReturnDate` values logically.</li>
+                            <li>Engineered the crucial `Days_Overdue` feature.</li>
+                            <li>Generated 8 statistical charts using Matplotlib & Seaborn.</li>
+                        </ul>
+                    </div>
+                </div>
 
-  // Load Notes
-  const savedNotes = JSON.parse(localStorage.getItem('roadmap_notes') || '[]');
-  const textareas = document.querySelectorAll('.notes-area');
-  textareas.forEach((ta, index) => {
-    if (savedNotes[index]) {
-      ta.value = savedNotes[index];
-    }
-  });
+                <div class="timeline-item reveal" data-step="4">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">PHASE 04 : MACHINE LEARNING</span>
+                        <h3>Linear Regression Model</h3>
+                        <p>Developed supervised learning algorithms using Scikit-Learn to establish mathematical rules for administrative tasks.</p>
+                        <ul>
+                            <li><strong>Input:</strong> Extracted `Days_Overdue`.</li>
+                            <li><strong>Output:</strong> Predicted `Fine_Amount`.</li>
+                            <li>Eliminates manual calculation errors entirely.</li>
+                        </ul>
+                    </div>
+                </div>
 
-  // Trigger visual updates
-  updateVisuals();
-};
-</script>
+                <div class="timeline-item reveal" data-step="5">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">PHASE 05 : DEPLOYMENT</span>
+                        <h3>Documentation & Web Interface</h3>
+                        <p>Compiled the pipeline into a presentable format for academic evaluation (Session 2025-26).</p>
+                        <ul>
+                            <li>Kartik & Tanishka finalized PPTs and IEEE reports.</li>
+                            <li>Farhan developed this responsive front-end UI.</li>
+                            <li>Deployed codebase via GitHub Pages.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="analysis">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge">Data Insights</div>
+                <h2 class="section-title">Exploratory <span class="text-gradient">Visualizations</span></h2>
+                <p class="section-desc">We translated 1000+ raw rows into 8 actionable insights. Click any chart to open the high-resolution lightbox viewer.</p>
+            </div>
+
+            <div class="gallery-grid">
+                <div class="chart-card reveal" onclick="openLightbox('charts/chart1_books.png')">
+                    <div class="chart-img-wrapper">
+                        <img src="charts/chart1_books.png" alt="Most Borrowed Books" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'><rect width=\'400\' height=\'300\' fill=\'%230d1326\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'16\' fill=\'%2394a3b8\' text-anchor=\'middle\'>Chart 1: Books Data</text></svg>'">
+                        <div class="zoom-overlay"><span class="zoom-btn">🔍 Expand Chart</span></div>
+                    </div>
+                    <div class="chart-info">
+                        <h4>1. Inventory Demand</h4>
+                        <p>Identification of the most frequently borrowed specific book titles to aid procurement.</p>
+                    </div>
+                </div>
+
+                <div class="chart-card reveal" onclick="openLightbox('charts/chart2_genre.png')">
+                    <div class="chart-img-wrapper">
+                        <img src="charts/chart2_genre.png" alt="Genre Popularity" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'><rect width=\'400\' height=\'300\' fill=\'%230d1326\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'16\' fill=\'%2394a3b8\' text-anchor=\'middle\'>Chart 2: Genre Data</text></svg>'">
+                        <div class="zoom-overlay"><span class="zoom-btn">🔍 Expand Chart</span></div>
+                    </div>
+                    <div class="chart-info">
+                        <h4>2. Genre Distribution</h4>
+                        <p>Categorical breakdown showing Computer Science literature dominating total transactions.</p>
+                    </div>
+                </div>
+
+                <div class="chart-card reveal" onclick="openLightbox('charts/chart3_monthly.png')">
+                    <div class="chart-img-wrapper">
+                        <img src="charts/chart3_monthly.png" alt="Monthly Trends" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'><rect width=\'400\' height=\'300\' fill=\'%230d1326\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'16\' fill=\'%2394a3b8\' text-anchor=\'middle\'>Chart 3: Monthly Trends</text></svg>'">
+                        <div class="zoom-overlay"><span class="zoom-btn">🔍 Expand Chart</span></div>
+                    </div>
+                    <div class="chart-info">
+                        <h4>3. Monthly Traffic Trends</h4>
+                        <p>Time-series analysis revealing extreme borrowing spikes during mid-term examination periods.</p>
+                    </div>
+                </div>
+
+                <div class="chart-card reveal" onclick="openLightbox('charts/chart4_fine.png')">
+                    <div class="chart-img-wrapper">
+                        <img src="charts/chart4_fine.png" alt="Fine Distribution" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'><rect width=\'400\' height=\'300\' fill=\'%230d1326\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'16\' fill=\'%2394a3b8\' text-anchor=\'middle\'>Chart 4: Fine Analysis</text></svg>'">
+                        <div class="zoom-overlay"><span class="zoom-btn">🔍 Expand Chart</span></div>
+                    </div>
+                    <div class="chart-info">
+                        <h4>4. Financial Liabilities</h4>
+                        <p>Distribution histogram analyzing the frequency and financial spread of overdue penalties.</p>
+                    </div>
+                </div>
+
+                <div class="chart-card reveal" onclick="openLightbox('charts/chart5_overdue.png')">
+                    <div class="chart-img-wrapper">
+                        <img src="charts/chart5_overdue.png" alt="Overdue Status" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'><rect width=\'400\' height=\'300\' fill=\'%230d1326\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'16\' fill=\'%2394a3b8\' text-anchor=\'middle\'>Chart 5: Overdue Ratio</text></svg>'">
+                        <div class="zoom-overlay"><span class="zoom-btn">🔍 Expand Chart</span></div>
+                    </div>
+                    <div class="chart-info">
+                        <h4>5. Return Compliance</h4>
+                        <p>Binary breakdown showing the exact ratio of on-time returns versus late infractions.</p>
+                    </div>
+                </div>
+
+                <div class="chart-card reveal" onclick="openLightbox('charts/chart6_late_days.png')">
+                    <div class="chart-img-wrapper">
+                        <img src="charts/chart6_late_days.png" alt="Late Days" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'><rect width=\'400\' height=\'300\' fill=\'%230d1326\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'16\' fill=\'%2394a3b8\' text-anchor=\'middle\'>Chart 6: Late Days Spread</text></svg>'">
+                        <div class="zoom-overlay"><span class="zoom-btn">🔍 Expand Chart</span></div>
+                    </div>
+                    <div class="chart-info">
+                        <h4>6. Days Overdue Spread</h4>
+                        <p>Scatter tracking of how late students keep books, identifying extreme edge-case outliers.</p>
+                    </div>
+                </div>
+                
+                <div class="chart-card reveal" onclick="openLightbox('charts/chart7_ml.png')" style="border-color: rgba(112, 0, 255, 0.4); box-shadow: 0 0 20px rgba(112,0,255,0.1);">
+                    <div class="chart-img-wrapper">
+                        <img src="charts/chart7_ml.png" alt="ML Regression" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'><rect width=\'400\' height=\'300\' fill=\'%230d1326\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'16\' fill=\'%2394a3b8\' text-anchor=\'middle\'>Chart 7: Machine Learning Model</text></svg>'">
+                        <div class="zoom-overlay"><span class="zoom-btn">🔍 Expand ML Plot</span></div>
+                    </div>
+                    <div class="chart-info" style="background: rgba(112, 0, 255, 0.05);">
+                        <h4 style="color: #b388ff;">7. ML Regression Verification</h4>
+                        <p>Mathematical proof visualizing the linear relationship between time penalty and final fine output.</p>
+                    </div>
+                </div>
+
+                <div class="chart-card reveal" onclick="openLightbox('charts/chart8.png')">
+                    <div class="chart-img-wrapper">
+                        <img src="charts/chart8.png" alt="Feature Analytics" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'><rect width=\'400\' height=\'300\' fill=\'%230d1326\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'16\' fill=\'%2394a3b8\' text-anchor=\'middle\'>Chart 8: Deep Analytics</text></svg>'">
+                        <div class="zoom-overlay"><span class="zoom-btn">🔍 Expand Chart</span></div>
+                    </div>
+                    <div class="chart-info">
+                        <h4>8. Feature Correlates</h4>
+                        <p>Advanced heatmap mapping relationships between student departments and genre selection.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="ml">
+        <div class="container">
+            <div class="ml-container">
+                <div class="ml-content reveal">
+                    <div class="section-badge">Predictive Engine</div>
+                    <h3>Automated Fine Prediction via <span class="text-gradient">Linear Regression</span></h3>
+                    <p>To eliminate manual, error-prone calculations by library staff, we deployed a Supervised Machine Learning algorithm using `scikit-learn`.</p>
+                    <p>The model digests engineered features—specifically `Days_Overdue`—to output exact financial liability instantly. Because the relationship between time and penalties is continuous, Linear Regression provided optimal reliability.</p>
+                    
+                    <div class="code-block">
+<span class="code-keyword">from</span> sklearn.model_selection <span class="code-keyword">import</span> train_test_split
+<span class="code-keyword">from</span> sklearn.linear_model <span class="code-keyword">import</span> LinearRegression
+
+<span class="code-comment"># Define Independent (X) and Dependent (y) variables</span>
+X = df[[<span class="code-string">'Days_Overdue'</span>]]
+y = df[<span class="code-string">'Fine_Amount'</span>]
+
+<span class="code-comment"># 80/20 Train-Test Split</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+<span class="code-comment"># Initialize and Train Model</span>
+model = LinearRegression()
+model.fit(X_train, y_train)
+                    </div>
+                </div>
+
+                <div class="metrics-grid reveal delay-200">
+                    <div class="metric-box">
+                        <span class="metric-value counter" data-target="1000">0</span><span class="metric-value">+</span>
+                        <div class="metric-label">Training Records</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-value">Supervised</span>
+                        <div class="metric-label">Learning Type</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-value">Scikit</span>
+                        <div class="metric-label">Framework</div>
+                    </div>
+                    <div class="metric-box" style="border-color: rgba(0,240,255,0.4); box-shadow: 0 0 20px rgba(0,240,255,0.1);">
+                        <span class="metric-value counter" data-target="98">0</span><span class="metric-value">%</span>
+                        <div class="metric-label" style="color: var(--accent-primary);">Model Accuracy (R²)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tech" style="padding-top: 40px;">
+        <div class="container text-center">
+            <h3 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 40px; text-align: center;">Core <span class="text-gradient">Technology Stack</span></h3>
+            <div class="tech-flex reveal">
+                <div class="tech-pill"><svg viewBox="0 0 24 24"><path fill="#3776AB" d="M14.25.18l.9.2.73.26.59.3.45.32.34.34.25.34.16.33.1.3.04.26.02.2-.01.13V8.5l-.05.63-.13.55-.21.46-.26.38-.3.31-.33.25-.35.19-.35.14-.33.1-.3.07-.26.04-.21.02H8.77l-.69.05-.59.14-.5.22-.41.27-.33.32-.27.35-.2.36-.15.37-.1.35-.07.32-.04.27-.02.21V15.36l.01.26.04.33.08.38.12.41.17.42.22.41.28.38.34.33.4.27.46.2.53.11.61.03h6.58l.18.01.43.05.66.11.85.22 1.01.37 1.11.58 1.16.82 1.13 1.11 1.04 1.45.85 1.83.6 2.26.27 2.73-.13 3.22-.61 3.69-1.15 4.1-1.74 4.41-2.4 4.62-3.1 4.71-3.83 4.68-4.59 4.54-5.38 4.29-6.18 3.92-6.98 3.44L12 23.82l-1.07-.06-1.06-.17-1.04-.26-1.01-.34-.96-.4-.9-.46-.82-.51-.73-.55-.63-.58-.51-.6-.39-.6-.27-.6-.14-.58V15.5l.05-.63.13-.55.21-.46.26-.38.3-.31.33-.25.35-.19.35-.14.33-.1.3-.07.26-.04.21-.02h6.21l.69-.05.59-.14.5-.22.41-.27.33-.32.27-.35.2-.36.15-.37.1-.35.07-.32.04-.27.02-.21V8.64l-.01-.26-.04-.33-.08-.38-.12-.41-.17-.42-.22-.41-.28-.38-.34-.33-.4-.27-.46-.2-.53-.11-.61-.03H3.66l-.18-.01-.43-.05-.66-.11-.85-.22-1.01-.37-1.11-.58-1.16-.82-1.13-1.11-1.04-1.45-.85-1.83-.6-2.26-.27-2.73.13-3.22.61-3.69 1.15-4.1 1.74-4.41 2.4-4.62 3.1-4.71 3.83-4.68 4.59-4.54 5.38-4.29 6.18-3.92 6.98-3.44z"/></svg> Python 3.10</div>
+                <div class="tech-pill">Pandas</div>
+                <div class="tech-pill">NumPy</div>
+                <div class="tech-pill">Matplotlib & Seaborn</div>
+                <div class="tech-pill">Scikit-Learn</div>
+                <div class="tech-pill">Jupyter Notebook</div>
+                <div class="tech-pill">GitHub Pages</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="team">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge">Contributors</div>
+                <h2 class="section-title">The Engineering <span class="text-gradient">Team</span></h2>
+                <p class="section-desc">B.Tech CSE (AI & ML) Minor Project Group. Connecting data science with practical application.</p>
+            </div>
+
+            <div class="team-grid">
+                <div class="team-card reveal delay-100">
+                    <div class="team-avatar leader-avatar">F</div>
+                    <h3 class="team-name">Farhan</h3>
+                    <div class="team-role">Team Leader & Developer</div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Architecture, UI/UX, & ML Core</p>
+                    <a href="https://github.com/Farhan0386" target="_blank" class="github-link">
+                        <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                        @Farhan0386
+                    </a>
+                </div>
+
+                <div class="team-card reveal delay-200">
+                    <div class="team-avatar">A</div>
+                    <h3 class="team-name">Avijit</h3>
+                    <div class="team-role">Developer</div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">EDA Pipelines & Data Vis</p>
+                    <a href="https://github.com/avijit" target="_blank" class="github-link">
+                        <svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        @avijit
+                    </a>
+                </div>
+
+                <div class="team-card reveal delay-300">
+                    <div class="team-avatar">K</div>
+                    <h3 class="team-name">Kartik</h3>
+                    <div class="team-role">Documentation</div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Project Report & PPT Design</p>
+                    <a href="https://github.com/kartik" target="_blank" class="github-link">
+                        <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                        @kartik
+                    </a>
+                </div>
+
+                <div class="team-card reveal delay-100">
+                    <div class="team-avatar">T</div>
+                    <h3 class="team-name">Tanishka</h3>
+                    <div class="team-role">Doc Support</div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">IEEE Paper Formatting</p>
+                    <a href="https://github.com/tanishka" target="_blank" class="github-link">
+                        <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                        @tanishka
+                    </a>
+                </div>
+
+                <div class="team-card reveal delay-200">
+                    <div class="team-avatar">A</div>
+                    <h3 class="team-name">Aman</h3>
+                    <div class="team-role">Data Collection</div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Dataset Generation</p>
+                    <a href="https://github.com/aman" target="_blank" class="github-link">
+                        <svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        @aman
+                    </a>
+                </div>
+
+                <div class="team-card reveal delay-300">
+                    <div class="team-avatar">T</div>
+                    <h3 class="team-name">Trigya</h3>
+                    <div class="team-role">Data Collection</div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Dataset Schema Design</p>
+                    <a href="https://github.com/trigya" target="_blank" class="github-link">
+                        <svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        @trigya
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-logo">LibraAI</div>
+            <p class="footer-text">B.Tech CSE (AI & ML) Minor Project • Session 2025-26</p>
+            <div class="footer-bottom">
+                &copy; 2026 Developed by Farhan & Team. Open Source. 
+            </div>
+        </div>
+    </footer>
+
+    <div id="lightbox" onclick="closeLightbox(event)">
+        <span class="lb-close" onclick="closeLightbox(event)">&times;</span>
+        <img id="lightbox-img" src="" alt="Expanded Chart">
+    </div>
+
+    <script>
+        // --- 1. LOADER LOGIC ---
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('initial-loader');
+            const bar = document.getElementById('loader-bar');
+            bar.style.width = '100%';
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+            }, 800); // 0.8s smooth fade out
+        });
+
+        // --- 2. ADVANCED CANVAS PARTICLE BACKGROUND ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles;
+
+        function initCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    size: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.1)';
+            
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                // Wrap around edges
+                if (p.x < 0) p.x = width;
+                if (p.x > width) p.x = 0;
+                if (p.y < 0) p.y = height;
+                if (p.y > height) p.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw connecting lines
+                for (let j = i + 1; j < particles.length; j++) {
+                    let p2 = particles[j];
+                    let dist = Math.sqrt(Math.pow(p.x - p2.x, 2) + Math.pow(p.y - p2.y, 2));
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.lineWidth = (150 - dist) / 150;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+        
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        animateCanvas();
+
+        // --- 3. SCROLL PROGRESS BAR & NAVBAR ---
+        const scrollProgress = document.getElementById('scroll-progress');
+        const navbar = document.getElementById('navbar');
+
+        window.addEventListener('scroll', () => {
+            // Scroll Progress
+            let scrollTotal = document.documentElement.scrollTop;
+            let heightTotal = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            let scrolled = (scrollTotal / heightTotal) * 100;
+            scrollProgress.style.width = scrolled + "%";
+
+            // Navbar Blur effect
+            if (scrollTotal > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // --- 4. SCROLL REVEAL ANIMATIONS ---
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 100;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal(); // Trigger on load
+
+        // --- 5. DYNAMIC TIMELINE PROGRESS ---
+        function updateTimeline() {
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            const progressLine = document.getElementById('timeline-progress');
+            let triggerBottom = window.innerHeight * 0.8;
+            
+            let lastActiveIndex = -1;
+
+            timelineItems.forEach((item, index) => {
+                const itemTop = item.getBoundingClientRect().top;
+                if (itemTop < triggerBottom) {
+                    item.classList.add('active');
+                    lastActiveIndex = index;
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            // Update vertical blue progress bar height based on active items
+            if (lastActiveIndex >= 0) {
+                const activeItem = timelineItems[lastActiveIndex];
+                const timelineContainer = document.getElementById('timeline');
+                
+                // Calculate position relative to container
+                const containerTop = timelineContainer.getBoundingClientRect().top + window.scrollY;
+                const dotTop = activeItem.querySelector('.timeline-dot').getBoundingClientRect().top + window.scrollY;
+                
+                // Set height to reach the active dot
+                const heightPercentage = ((dotTop - containerTop + 12) / timelineContainer.offsetHeight) * 100;
+                progressLine.style.height = Math.min(heightPercentage, 100) + '%';
+            } else {
+                progressLine.style.height = '0%';
+            }
+        }
+        window.addEventListener("scroll", updateTimeline);
+        updateTimeline();
+
+        // --- 6. METRIC COUNTER ANIMATION ---
+        const counters = document.querySelectorAll('.counter');
+        const speed = 200; // lower is faster
+
+        counters.forEach(counter => {
+            const updateCount = () => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText;
+                const inc = target / speed;
+
+                if (count < target) {
+                    counter.innerText = Math.ceil(count + inc);
+                    setTimeout(updateCount, 10);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            
+            // Only start counting when in viewport
+            let observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    updateCount();
+                    observer.disconnect();
+                }
+            });
+            observer.observe(counter);
+        });
+
+        // --- 7. LIGHTBOX FUNCTIONALITY ---
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden'; // prevent background scrolling
+        }
+
+        function closeLightbox(e) {
+            // Close if clicked on background or 'x', but not the image itself
+            if (!e || e.target.id === 'lightbox' || e.target.classList.contains('lb-close')) {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = 'auto'; // restore scrolling
+                setTimeout(() => { lightboxImg.src = ''; }, 300);
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape" && lightbox.classList.contains('active')) {
+                closeLightbox();
+            }
+        });
+
+    </script>
 </body>
 </html>
